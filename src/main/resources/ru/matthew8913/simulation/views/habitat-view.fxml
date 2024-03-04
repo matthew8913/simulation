@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400" prefWidth="640" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.matthew8913.simulation.controllers.Controller">
+    <children>
+        <Pane fx:id="habitatPane" onKeyPressed="#handleKeyPressed" prefHeight="400" prefWidth="640 " style="-fx-background-color: #3f3f3f;"/>
+        <Label fx:id="timeLabel" prefHeight="30.0" prefWidth="60.0" text="" style="-fx-font-size: 14px; -fx-background-color: #D3D3D3;" visible="false" />
+    </children>
+
+</AnchorPane>
