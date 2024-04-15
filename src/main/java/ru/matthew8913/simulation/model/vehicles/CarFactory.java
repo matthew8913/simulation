@@ -8,19 +8,55 @@ import java.io.InputStream;
 import java.util.SplittableRandom;
 
 public class CarFactory {
-    private static final double pTruck = 30;
-    private static final double pCar = 60;
-    private static final int nTruck = 2;
-    private static final int nCar = 1;
+    private int lifeTimeTruck;
+    private int lifeTimeCar;
+    private int pTruck;
+    private  int pCar;
+    private  int nTruck;
+    private   int nCar;
     private static final String carImagePath = "/ru/matthew8913/simulation/assets/car.png";
     private static final String truckImagePath = "/ru/matthew8913/simulation/assets/truck.png";
+
+    public void setpTruck(int pTruck) {
+        this.pTruck = pTruck;
+    }
+
+    public void setpCar(int pCar) {
+        this.pCar = pCar;
+    }
+
+    public void setnTruck(int nTruck) {
+        this.nTruck = nTruck;
+    }
+
+    public void setnCar(int nCar) {
+        this.nCar = nCar;
+    }
+
+    public int getLifeTimeTruck() {
+        return lifeTimeTruck;
+    }
+
+    public void setLifeTimeTruck(int lifeTimeTruck) {
+        this.lifeTimeTruck = lifeTimeTruck;
+    }
+
+    public int getLifeTimeCar() {
+        return lifeTimeCar;
+    }
+
+    public void setLifeTimeCar(int lifeTimeCar) {
+        this.lifeTimeCar = lifeTimeCar;
+    }
+
+
 
 
     public Truck createTruck(int sec){
         SplittableRandom random = new SplittableRandom();
         if(sec%nTruck==0){
             if(random.nextInt(1,101)<=pTruck){
-                Truck truck = new Truck(new Point(random.nextInt(1, Habitat.WIDTH),random.nextInt(1,Habitat.HEIGHT)));
+                Truck truck = new Truck(new Point(random.nextInt(1, Habitat.WIDTH),random.nextInt(1,Habitat.HEIGHT)),lifeTimeTruck);
                 InputStream imageStream = getClass().getResourceAsStream(truckImagePath);
                 if (imageStream != null) {
                     truck.setImage(new Image(imageStream));
@@ -40,7 +76,7 @@ public class CarFactory {
         SplittableRandom random = new SplittableRandom();
         if(sec%nCar==0){
             if(random.nextInt(1,101)<=pCar){
-                Car car = new Car(new Point(random.nextInt(1, Habitat.WIDTH),random.nextInt(1,Habitat.HEIGHT)));
+                Car car = new Car(new Point(random.nextInt(1, Habitat.WIDTH),random.nextInt(1,Habitat.HEIGHT)),lifeTimeCar);
                 InputStream imageStream = getClass().getResourceAsStream(carImagePath);
                 if (imageStream != null) {
                     car.setImage(new Image(imageStream));

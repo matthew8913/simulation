@@ -1,9 +1,13 @@
 package ru.matthew8913.simulation.views;
 
+import javafx.scene.Node;
 import ru.matthew8913.simulation.model.Habitat;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Класс-художник.
@@ -30,7 +34,12 @@ public class Drawer {
      * Метод очистки панели от объектов.
      * @param habitatPane Панель, требующая очистки.
      */
-    public static void clearHabitat(Pane habitatPane){
-        habitatPane.getChildren().clear();
+    public static void clearHabitat(Pane habitatPane) {
+        List<Node> children = new ArrayList<>(habitatPane.getChildren());
+        for (Node child : children) {
+            if (child instanceof ImageView) {
+                habitatPane.getChildren().remove(child);
+            }
+        }
     }
 }

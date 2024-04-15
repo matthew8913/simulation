@@ -1,12 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="400" prefWidth="640" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.matthew8913.simulation.controllers.Controller">
+<AnchorPane prefHeight="425.0" prefWidth="800" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.matthew8913.simulation.controllers.Controller">
     <children>
-        <Pane fx:id="habitatPane" onKeyPressed="#handleKeyPressed" prefHeight="400" prefWidth="640 " style="-fx-background-color: #3f3f3f;"/>
-        <Label fx:id="timeLabel" prefHeight="30.0" prefWidth="60.0" text="" style="-fx-font-size: 14px; -fx-background-color: #D3D3D3;" visible="false" />
+        <Pane fx:id="habitatPane" onKeyPressed="#handleKeyPressed" prefHeight="400" prefWidth="640 " style="-fx-background-color: #3f3f3f;" AnchorPane.bottomAnchor="0.0">
+         <children>
+              <Label fx:id="timeLabel" prefHeight="30.0" prefWidth="60.0" style="-fx-font-size: 14px; -fx-background-color: #D3D3D3;" text="" visible="false" />
+         </children></Pane>
+        <VBox layoutX="640.0" prefHeight="400.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0">
+            <children>
+                <HBox prefHeight="0.0" prefWidth="160.0">
+                    <children>
+                        <Button fx:id="startButton" mnemonicParsing="false" onAction="#handleStartButton" prefWidth="80" text="Start" />
+                        <Button fx:id="stopButton" mnemonicParsing="false" onAction="#handleStopButton" prefWidth="80" text="Stop" />
+                    </children>
+                </HBox>
+                <HBox prefHeight="16.0" prefWidth="160.0">
+               <children>
+                  <CheckBox fx:id="showStatsCheckBox" onAction="#handleShowStatsAction" alignment="CENTER" mnemonicParsing="false" prefHeight="17.0" prefWidth="191.0" text="Show statistics" />
+               </children>
+                </HBox>
+                <HBox prefHeight="18.0" prefWidth="160.0">
+                    <children>
+                        <RadioButton fx:id="showTimeRadioButton" mnemonicParsing="false" onAction="#handleShowTimeAction" prefWidth="80.0" text="Show time" />
+                        <RadioButton fx:id="hideTimeRadioButton" mnemonicParsing="false" onAction="#handleShowTimeAction" prefHeight="17.0" prefWidth="80.0" text="Hide time" />
+                    </children>
+                </HBox>
+
+                <HBox prefHeight="19.0" prefWidth="160.0">
+                    <children>
+                        <Label alignment="CENTER" prefHeight="17.0" prefWidth="80.0" text="Car:" />
+                        <Label alignment="CENTER" prefHeight="17.0" prefWidth="80.0" text="Truck:" />
+                    </children>
+                </HBox>
+                <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="20.0" prefWidth="160.0" text="Интервалы генерации авто:" />
+                <HBox prefHeight="15.0" prefWidth="160.0">
+                    <children>
+                        <TextField fx:id="carIntervalTextField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="50.0" />
+                        <Label alignment="CENTER" prefHeight="20.0" prefWidth="30.0" text="сек." />
+                        <TextField fx:id="truckIntervalTextField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="50.0" />
+                        <Label alignment="CENTER" prefHeight="20.0" prefWidth="30.0" text="сек." />
+                    </children>
+                </HBox>
+                <Label alignment="CENTER" prefHeight="20.0" text="Вероятности рождения авто:" />
+                <HBox prefHeight="16.0" prefWidth="160.0">
+                    <children>
+                        <HBox prefHeight="20.0" prefWidth="160.0">
+                            <children>
+                                <ChoiceBox fx:id="pCarChoiceBox" prefHeight="20.0" prefWidth="80.0" />
+                                <ChoiceBox fx:id="pTruckChoiceBox" prefHeight="25.0" prefWidth="80.0" />
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+                <Label alignment="CENTER" prefHeight="17.0" prefWidth="160.0" text="Время жизни автомобилей:" />
+                <HBox prefHeight="24.0" prefWidth="160.0">
+                    <children>
+                        <TextField fx:id="carLifeTimeTextField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="50.0" />
+                        <Label alignment="CENTER" prefHeight="20.0" prefWidth="30.0" text="сек." />
+                        <TextField fx:id="truckLifeTimeTextField" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="20.0" prefWidth="50.0" />
+                        <Label alignment="CENTER" prefHeight="20.0" prefWidth="30.0" text="сек." />
+                    </children>
+                </HBox>
+            <Button fx:id="currentObjectsButton" mnemonicParsing="false" onAction="#handleCurrentObjectsButton" prefHeight="25.0" prefWidth="160.0" text="Текущие объекты" />
+
+            </children>
+        </VBox>
+        <HBox layoutY="1.0" prefHeight="19.0" prefWidth="640.0">
+            <children>
+                <MenuBar prefHeight="0.0" prefWidth="640.0">
+                    <menus>
+                        <Menu mnemonicParsing="false" text="Run">
+                            <items>
+                                <MenuItem fx:id="tbStartButton" mnemonicParsing="false" onAction="#handleStartButton" text="Start" />
+                                <MenuItem fx:id="tbEndButton" mnemonicParsing="false" onAction="#handleStopButton" text="Stop" />
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Configure habitat">
+                            <items>
+                                <CheckMenuItem fx:id="tbShowStatsCheckBox" mnemonicParsing="false" onAction="#handleShowStatsAction" text="Show statistics" />
+                                <CheckMenuItem fx:id="tbShowTimeCheckBox" mnemonicParsing="false" onAction="#handleShowTimeAction" text="Show time" />
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+            </children>
+        </HBox>
     </children>
 
 </AnchorPane>

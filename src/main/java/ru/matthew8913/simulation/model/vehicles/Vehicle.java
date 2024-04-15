@@ -6,7 +6,11 @@ import javafx.scene.image.Image;
 /**
  * Абстрактный класс транспортного средства.
  */
-abstract public class Vehicle implements IBehaviour {
+public abstract class Vehicle implements IBehaviour {
+    protected int id;
+
+    protected int lifeTime;
+
     /**
      * Изображение транспортного средства.
      */
@@ -15,6 +19,11 @@ abstract public class Vehicle implements IBehaviour {
      * Переменная координаты.
      */
     protected Point coordinates;
+    protected Vehicle(Point coordinates, int lifeTime) {
+        this.coordinates = coordinates;
+        this.lifeTime=lifeTime;
+    }
+
     public Point getCoordinates() {
         return coordinates;
     }
@@ -27,8 +36,20 @@ abstract public class Vehicle implements IBehaviour {
         this.image = image;
     }
 
-    protected Vehicle(Point coordinates) {
-        this.coordinates = coordinates;
+    public void setLifeTime(int lifeTime) {
+        this.lifeTime = lifeTime;
+    }
+
+    public int getLifeTime() {
+        return lifeTime;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
 }

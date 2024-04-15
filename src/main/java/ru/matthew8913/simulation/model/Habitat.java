@@ -4,10 +4,10 @@ import ru.matthew8913.simulation.model.vehicles.Car;
 import ru.matthew8913.simulation.model.vehicles.CarFactory;
 import ru.matthew8913.simulation.model.vehicles.Truck;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Класс среды.
@@ -22,13 +22,17 @@ public class Habitat {
      */
     private boolean isRunning;
     /**
+     * Флаг для статистики.
+     */
+    private boolean statsIsAvailable;
+    /**
      * Таймер для планирования периодических задач.
      */
     private Timer simulationTimer;
     /**
      * Секундомер для симуляции.
      */
-    private final SimulationStopWatch simulationStopWatch;
+    private SimulationStopWatch simulationStopWatch;
     /**
      * Фабрика автомобилей.
      */
@@ -38,53 +42,128 @@ public class Habitat {
      */
     private final List<Vehicle> vehicleList;
     /**
+     * Множество идентификаторов.
+     */
+    private final Set<Integer> identifiers;
+    /**
+     * Мапа времен рождения по id.
+     */
+    private final Map<Integer,Integer> birthTimes;
+
+    /**
      * Ширина поля.
      */
     public static final int WIDTH = 640;
+
     /**
      * Высота поля.
      */
     public static final int HEIGHT = 400;
+    public SimulationStopWatch getSimulationStopWatch() {
+        return simulationStopWatch;
+    }
+    public List<Vehicle> getVehicleList() {
+        return vehicleList;
+    }
+    public Timer getSimulationTimer() {
+        return simulationTimer;
+    }
+    public Statistics getStatistics() {
+        return statistics;
+    }
+    public boolean isStatsIsAvailable() {
+        return statsIsAvailable;
+    }
+    public boolean isRunning() {
+        return isRunning;
+    }
+    public Map<Integer, Integer> getBirthTimes() {
+        return birthTimes;
+    }
+
+    public void setStatsIsAvailable(boolean statsIsAvailable) {
+        this.statsIsAvailable = statsIsAvailable;
+    }
 
     /**
      * Конструктор среды.
      */
-    public Habitat(){
+    public Habitat() {
         //Пока что используем потокобезопасный массив.
-        vehicleList = new CopyOnWriteArrayList<>();
+        identifiers = new TreeSet<>();
+        vehicleList = Collections.synchronizedList(new ArrayList<>());
+        birthTimes = new HashMap<>();
         factory = new CarFactory();
         isRunning = false;
-        simulationStopWatch=new SimulationStopWatch();
+        statsIsAvailable = true;
+        simulationStopWatch = new SimulationStopWatch();
+    }
+
+    /**
+     * Метод установки параметров фабрики.
+     * @param pCar Вероятность рождения car.
+     * @param pTruck Вероятность рождения truck.
+     * @param nCar Интервал рождения car.
+     * @param nTruck Интервал рождения car.
+     * @param lifeTimeCar Время жизни car.
+     * @param lifeTimeTruck Время жизни truck.
+     */
+    public void setFactoryParameters(int pCar, int pTruck, int nCar, int nTruck,
+    int lifeTimeCar, int lifeTimeTruck) {
+        factory.setnCar(nCar);
+        factory.setnTruck(nTruck);
+        factory.setpCar(pCar);
+        factory.setpTruck(pTruck);
+        factory.setLifeTimeCar(lifeTimeCar);
+        factory.setLifeTimeTruck(lifeTimeTruck);
     }
 
     /**
      * Метод запуска симуляции.
      */
-    public void runSimulation() {
+    public void startSimulation() {
         statistics = new Statistics();
         isRunning = true;
         simulationTimer = new Timer();
+        simulationStopWatch = new SimulationStopWatch();
         simulationStopWatch.start();
         simulationTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                int sec = simulationStopWatch.getSeconds();
-                update(sec);
+                if (isRunning) {
+                    int sec = simulationStopWatch.getSeconds();
+                    update(sec);
+                }
             }
         }, 0, 1000);
-
     }
 
     /**
-     * Метод остановки симуляции.
+     * Метод приостановки симуляции.
      */
-    public void stopSimulation(){
+    public void pauseSimulation() {
         if(isRunning){
-            isRunning=false;
-            simulationStopWatch.stop();
+            isRunning = false;
+            simulationStopWatch.suspend();
             statistics.setDuration(simulationStopWatch.getFormattedTime());
-            simulationTimer.cancel();
             statistics.setVehicleList(List.copyOf(vehicleList));
+        }
+    }
+
+    /**
+     * Метод продолжения симуляции.
+     */
+    public void resumeSimulation() {
+        isRunning = true;
+        simulationStopWatch.resume();
+    }
+
+    /**
+     * Метод использующийся при закрытие среды.
+     */
+    public void close(){
+        if(simulationTimer!=null){
+            simulationTimer.cancel();
             simulationStopWatch.reset();
         }
     }
@@ -93,37 +172,62 @@ public class Habitat {
      * Метод обновления среды.
      * @param sec Время, прошедшее с начала симуляции.
      */
-    public void update(int sec){
+    public void update(int sec) {
         Truck newTruck = factory.createTruck(sec);
         Car newCar = factory.createCar(sec);
-
         if (newTruck != null) {
-            vehicleList.add(newTruck);
+            addVehiclesToHabitat(newTruck,sec);
         }
-
         if (newCar != null) {
-            vehicleList.add(newCar);
+            addVehiclesToHabitat(newCar,sec);
+        }
+        deleteDeadCars(sec);
+    }
+
+    /**
+     * Метод удаления мертвых машин.
+     * @param sec Время с начала симуляции.
+     */
+    public void deleteDeadCars(int sec) {
+        Iterator<Vehicle> iterator = vehicleList.iterator();
+        while (iterator.hasNext()) {
+            Vehicle v = iterator.next();
+            if (sec - birthTimes.get(v.getId()) >= v.getLifeTime()) {
+                iterator.remove();
+                birthTimes.remove(v.getId());
+                identifiers.remove(v.getId());
+            }
         }
     }
 
-    public Statistics getStatistics() {
-        return statistics;
+    /**
+     * Метод добавления машин в среду. Обрабатывает все коллекции.
+     * @param v Машина.
+     * @param sec Время её появления.
+     */
+    public void addVehiclesToHabitat(Vehicle v, int sec){
+        int id;
+        do {
+            id = new Random().nextInt(10000) + 1;
+        } while (identifiers.contains(id));
+        v.setId(id);
+        vehicleList.add(v);
+        birthTimes.put(id,sec);
     }
 
-    public void clear(){
+    /**
+     * Метод очистки. Используется по окончании работы симуляции.
+     */
+    public void clear() {
+        simulationStopWatch.reset();
+        simulationTimer.cancel();
+        simulationTimer=null; 
         vehicleList.clear();
-        statistics = null;
+        birthTimes.clear();
+        identifiers.clear();
+        statistics.setVehicleList(new ArrayList<>());
+        statistics.setDuration("0:0");
     }
 
-    public SimulationStopWatch getSimulationStopWatch() {
-        return simulationStopWatch;
-    }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    public List<Vehicle> getVehicleList() {
-        return vehicleList;
-    }
 }

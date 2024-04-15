@@ -10,6 +10,7 @@ import java.util.List;
  * Класс статистики симуляции.
  */
 public class Statistics {
+
     /**
      * Продолжительность симуляции.
      */
@@ -26,6 +27,15 @@ public class Statistics {
     Statistics(){
         duration = "";
     }
+
+    public void setVehicleList(List<Vehicle> vehicleList) {
+        this.vehicleList = vehicleList;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
 
     /**
      * Метод генерации статистики.
@@ -47,14 +57,6 @@ public class Statistics {
         sb.append("Car count: ").append(carCount).append("\n");
         sb.append("Truck count: ").append(truckCount);
         return sb.toString();
-    }
-
-    public void setVehicleList(List<Vehicle> vehicleList) {
-        this.vehicleList = vehicleList;
-    }
-
-    public void setDuration(String duration) {
-        this.duration = duration;
     }
 
 }
