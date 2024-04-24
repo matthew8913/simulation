@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Controller{
+public class Controller {
     public CarAi getCarAi() {
         return carAi;
     }
@@ -89,7 +89,7 @@ public class Controller{
      * Метод инициализации всех компонент
      */
     @FXML
-    public void initialize(){
+    public void initialize() {
         habitat = new Habitat();
         carAi = new CarAi();
         truckAi = new TruckAi();
@@ -108,7 +108,7 @@ public class Controller{
     /**
      * Метод инициализации класса view среды. Передаёт в него компоненты с нетривиальной логикой.
      */
-    public void initializeHabitatView(){
+    public void initializeHabitatView() {
         habitatView = new HabitatView();
         habitatView.setTbMenuStartButton(tbStartButton);
         habitatView.setTbMenuStopButton(tbEndButton);
@@ -122,7 +122,7 @@ public class Controller{
     /**
      * Инициализация кнопок старта и остановки.
      */
-    public void initializeMainButtons(){
+    public void initializeMainButtons() {
         startButton.setFocusTraversable(false);
         stopButton.setFocusTraversable(false);
         startButton.setDisable(false);
@@ -133,7 +133,7 @@ public class Controller{
     /**
      * Инициализация компонент управления статистическим окном.
      */
-    public void initializeStatsControls(){
+    public void initializeStatsControls() {
         showStatsCheckBox.setFocusTraversable(false);
         showStatsCheckBox.setSelected(true);
         tbShowStatsCheckBox.setSelected(true);
@@ -142,7 +142,7 @@ public class Controller{
     /**
      * Инициализация компонент управления отображением времени.
      */
-    public void initializeTimeControls(){
+    public void initializeTimeControls() {
         ToggleGroup timeToggleGroup = new ToggleGroup();
         showTimeRadioButton.setToggleGroup(timeToggleGroup);
         hideTimeRadioButton.setToggleGroup(timeToggleGroup);
@@ -154,10 +154,10 @@ public class Controller{
     /**
      * Инициализация choice boxes для вероятности.
      */
-    public void initializePControls(){
-        for(int i = 0;i<=100;i+=10){
-            pCarChoiceBox.getItems().add(i+ "%");
-            pTruckChoiceBox.getItems().add(i+ "%");
+    public void initializePControls() {
+        for (int i = 0; i <= 100; i += 10) {
+            pCarChoiceBox.getItems().add(i + "%");
+            pTruckChoiceBox.getItems().add(i + "%");
         }
         pCarChoiceBox.setValue("50%");
         pTruckChoiceBox.setValue("50%");
@@ -166,7 +166,7 @@ public class Controller{
     /**
      * Инициализация филдов для установки интервалов рождения
      */
-    public void initializeIntervalControls(){
+    public void initializeIntervalControls() {
         carIntervalTextField.setText("1");
         truckIntervalTextField.setText("1");
         carIntervalTextField.setOnKeyPressed(this::handleKeyPressed);
@@ -176,7 +176,7 @@ public class Controller{
     /**
      * Инициализация компонент управления временем жизни объеков.
      */
-    public void initializeLifetimeControls(){
+    public void initializeLifetimeControls() {
         carLifeTimeTextField.setText("10");
         truckLifeTimeTextField.setText("10");
         carLifeTimeTextField.setOnKeyPressed(this::handleKeyPressed);
@@ -192,7 +192,7 @@ public class Controller{
         return habitatView;
     }
 
-    public void setDefaultFactoryParameters(){
+    public void setDefaultFactoryParameters() {
         carIntervalTextField.setText("1");
         truckIntervalTextField.setText("1");
         carLifeTimeTextField.setText("10");
@@ -201,6 +201,7 @@ public class Controller{
 
     /**
      * Метод считывающий данные со всех компонент управления. Формирует фабрику для среды.
+     *
      * @return Отработало корректно/некорректно.
      */
     public boolean setFactoryParameters() {
@@ -215,9 +216,9 @@ public class Controller{
             int truckInterval = Integer.parseInt(truckIntervalText);
             int carLifeTime = Integer.parseInt(carLifeTimeText);
             int truckLifeTime = Integer.parseInt(truckLifeTimeText);
-            int pCar = Integer.parseInt(pCarChoiceBox.getValue().substring(0, pCarChoiceBox.getValue().length()-1));
-            int pTruck = Integer.parseInt(pTruckChoiceBox.getValue().substring(0, pTruckChoiceBox.getValue().length()-1));
-            habitat.setFactoryParameters(pCar,pTruck,carInterval,truckInterval,carLifeTime,truckLifeTime);
+            int pCar = Integer.parseInt(pCarChoiceBox.getValue().substring(0, pCarChoiceBox.getValue().length() - 1));
+            int pTruck = Integer.parseInt(pTruckChoiceBox.getValue().substring(0, pTruckChoiceBox.getValue().length() - 1));
+            habitat.setFactoryParameters(pCar, pTruck, carInterval, truckInterval, carLifeTime, truckLifeTime);
             return true;
         } catch (IllegalArgumentException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -232,6 +233,7 @@ public class Controller{
 
     /**
      * Обработчик нажатий по клавиатуре.
+     *
      * @param event Событие.
      */
     @FXML
@@ -249,7 +251,7 @@ public class Controller{
      * Обработка кнопки Start.
      */
     @FXML
-    private void handleStartButton(){
+    private void handleStartButton() {
         startSimulation();
     }
 
@@ -257,21 +259,22 @@ public class Controller{
      * Обработчик кнопки Stop.
      */
     @FXML
-    private void handleStopButton(){
+    private void handleStopButton() {
         stopSimulation();
     }
 
     /**
      * Обработчик компонент, отвечающий за показ/скрытие статистики.
+     *
      * @param event Событие.
      */
     @FXML
-    private void handleShowStatsAction(ActionEvent event){
+    private void handleShowStatsAction(ActionEvent event) {
         Object source = event.getSource();
         boolean isSelected;
-        if(source==showStatsCheckBox){
+        if (source == showStatsCheckBox) {
             isSelected = showStatsCheckBox.isSelected();
-        }else{
+        } else {
             isSelected = tbShowStatsCheckBox.isSelected();
         }
         showStatsCheckBox.setSelected(isSelected);
@@ -281,18 +284,19 @@ public class Controller{
 
     /**
      * Обработчик компонент, отвечающих за показ/скрытие лейбла времени.
+     *
      * @param action Событие.
      */
     @FXML
-    private void handleShowTimeAction(Event action){
+    private void handleShowTimeAction(Event action) {
         habitatView.switchTimeLabelVisible();
         Object source = action.getSource();
-        if(source == showTimeRadioButton){
+        if (source == showTimeRadioButton) {
             tbShowTimeCheckBox.setSelected(showTimeRadioButton.isSelected());
         } else if (source == tbShowTimeCheckBox) {
             showTimeRadioButton.setSelected(tbShowTimeCheckBox.isSelected());
             hideTimeRadioButton.setSelected(!tbShowTimeCheckBox.isSelected());
-        } else{
+        } else {
             tbShowTimeCheckBox.setSelected(timeLabel.isVisible());
             showTimeRadioButton.setSelected(timeLabel.isVisible());
             hideTimeRadioButton.setSelected(!timeLabel.isVisible());
@@ -304,14 +308,14 @@ public class Controller{
      * Обработчик кнопки показа текущих объектов.
      */
     @FXML
-    private void handleCurrentObjectsButton(){
-        if(habitat.isRunning()){
+    private void handleCurrentObjectsButton() {
+        if (habitat.isRunning()) {
             habitat.pause();
             habitatView.pause();
             StringBuilder sb = new StringBuilder();
             List<Vehicle> vehicleList = VehicleList.getInstance().getVehicles();
-            Set<Map.Entry<Integer,Integer>> entrySet = habitat.getBirthTimes().entrySet();
-            for (Map.Entry<Integer,Integer> e : entrySet) {
+            Set<Map.Entry<Integer, Integer>> entrySet = habitat.getBirthTimes().entrySet();
+            for (Map.Entry<Integer, Integer> e : entrySet) {
                 Vehicle veh = Objects.requireNonNull(vehicleList.stream()
                         .filter(v -> v.getId() == e.getKey())
                         .findFirst()
@@ -321,7 +325,7 @@ public class Controller{
                         .append(veh.getId())
                         .append("): ").append("born at ")
                         .append(e.getValue()).append(" sec ")
-                        .append("and lives for ").append(e.getValue()+veh.getLifeTime())
+                        .append("and lives for ").append(e.getValue() + veh.getLifeTime())
                         .append("\n");
             }
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -343,9 +347,9 @@ public class Controller{
     /**
      * Метод, запускающий симуляцию. Либо продолжающий, если она запущена.
      */
-    void startSimulation(){
-        if(!habitat.isRunning()){
-            if(setFactoryParameters()){
+    void startSimulation() {
+        if (!habitat.isRunning()) {
+            if (setFactoryParameters()) {
                 habitatView.clear();
                 habitat.start();
                 habitatView.start();
@@ -353,20 +357,20 @@ public class Controller{
             habitat.resume();
             habitatView.resume();
             habitatView.switchMainButtons();
-            }
         }
+    }
 
 
     /**
      * Метод остановки симуляции либо ее прерывания.
      */
-    void stopSimulation(){
-        if(habitat.isRunning()){
+    void stopSimulation() {
+        if (habitat.isRunning()) {
             habitat.pause();
             habitatView.pause();
             habitatView.showStatistics();
         }
-        if(!habitat.isStatsIsAvailable()){
+        if (!habitat.isStatsIsAvailable()) {
             habitatView.switchMainButtons();
             habitat.clear();
         }
@@ -375,7 +379,8 @@ public class Controller{
 
     /**
      * Метод проверки интервалов рождения.
-     * @param carBirthInterval Интервал рождения car.
+     *
+     * @param carBirthInterval   Интервал рождения car.
      * @param truckBirthInterval Интервал рождения truck.
      * @throws IllegalArgumentException Если значения некорректны.
      */
@@ -383,7 +388,7 @@ public class Controller{
         try {
             int i1 = Integer.parseInt(carBirthInterval);
             int i2 = Integer.parseInt(truckBirthInterval);
-            if(i1<=0||i2<=0){
+            if (i1 <= 0 || i2 <= 0) {
                 throw new NumberFormatException();
             }
         } catch (NumberFormatException e) {
@@ -393,7 +398,8 @@ public class Controller{
 
     /**
      * Метод проверки времен жизни объектов.
-     * @param carLifeTime Время жизни car.
+     *
+     * @param carLifeTime   Время жизни car.
      * @param truckLifeTime Время жизни truck.
      * @throws IllegalArgumentException Если значения некорректны.
      */
@@ -401,7 +407,7 @@ public class Controller{
         try {
             int i1 = Integer.parseInt(carLifeTime);
             int i2 = Integer.parseInt(truckLifeTime);
-            if(i1<=0||i2<=0){
+            if (i1 <= 0 || i2 <= 0) {
                 throw new NumberFormatException();
             }
 
@@ -413,11 +419,11 @@ public class Controller{
 
     @FXML
     public void handleStartCarAiButton() {
-        if(!carAi.isRunning()){
-            if(carAi.getExecutorService()==null){
+        if (!carAi.isRunning()) {
+            if (carAi.getExecutorService() == null) {
                 carAi.start();
                 switchCarAiButtons();
-            }else {
+            } else {
                 carAi.resume();
                 switchCarAiButtons();
             }
@@ -426,7 +432,7 @@ public class Controller{
 
     @FXML
     public void handleStopCarAiButton() {
-        if(carAi.isRunning()){
+        if (carAi.isRunning()) {
             switchCarAiButtons();
             carAi.pause();
         }
@@ -434,51 +440,74 @@ public class Controller{
 
     @FXML
     public void handleStartTruckAiButton() {
-        if(!truckAi.isRunning()){
-            if(truckAi.getExecutorService()==null){
+        if (!truckAi.isRunning()) {
+            if (truckAi.getExecutorService() == null) {
                 truckAi.start();
                 switchTruckAiButtons();
-            }else {
+            } else {
                 truckAi.resume();
                 switchTruckAiButtons();
-             }
+            }
         }
     }
 
     @FXML
     public void handleStopTruckAiButton() {
-        if(truckAi.isRunning()){
+        if (truckAi.isRunning()) {
             switchTruckAiButtons();
             truckAi.pause();
         }
     }
-    public void switchCarAiButtons(){
-        if(carAiStartButton.isDisabled()){
+
+    public void switchCarAiButtons() {
+        if (carAiStartButton.isDisabled()) {
             carAiStartButton.setDisable(false);
             carAiStopButton.setDisable(true);
-        }else{
+        } else {
             carAiStopButton.setDisable(false);
             carAiStartButton.setDisable(true);
         }
     }
-    public void switchTruckAiButtons(){
-        if(truckAiStartButton.isDisabled()){
+
+    public void switchTruckAiButtons() {
+        if (truckAiStartButton.isDisabled()) {
             truckAiStartButton.setDisable(false);
             truckAiStopButton.setDisable(true);
-        }else{
+        } else {
             truckAiStopButton.setDisable(false);
             truckAiStartButton.setDisable(true);
         }
     }
 
-            public void initializeAiButtons(){
-                truckAiStartButton.setDisable(false);
-                truckAiStopButton.setDisable(true);
-                carAiStartButton.setDisable(false);
-                carAiStopButton.setDisable(true);
-                truckAiStartButton.setFocusTraversable(false);
-                carAiStartButton.setFocusTraversable(false);
-                truckAiStopButton.setFocusTraversable(false);
-                carAiStopButton.setFocusTraversable(false);
-            }
+    public void initializeAiButtons() {
+        truckAiStartButton.setDisable(false);
+        truckAiStopButton.setDisable(true);
+        carAiStartButton.setDisable(false);
+        carAiStopButton.setDisable(true);
+        truckAiStartButton.setFocusTraversable(false);
+        carAiStartButton.setFocusTraversable(false);
+        truckAiStopButton.setFocusTraversable(false);
+        carAiStopButton.setFocusTraversable(false);
+    }
+
+    public void serialize(){
+        VehicleList.serializeVehicles();
+        habitat.serialize();
+    }
+    public void deserialize(){
+        habitatView.pause();
+        habitat.close();
+        VehicleList.deserializeVehicles();
+        habitat.deserialize();
+        habitat.getFactory().setImages();
+        setFactoryParameters();
+        habitat.start();
+        habitatView.start();
+        if(!startButton.isDisabled()){
+            startButton.setDisable(true);
+            stopButton.setDisable(false);
+            tbStartButton.setDisable(true);
+            tbEndButton.setDisable(false);
+        }
+    }
 }

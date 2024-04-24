@@ -17,8 +17,8 @@ public class CarAi extends BaseAi{
 
     @Override
     public void move() {
-        synchronized (vehicleList) {
-            for(Vehicle v:vehicleList.getVehicles()){
+        synchronized (VehicleList.getInstance().getVehicles()) {
+            for(Vehicle v:VehicleList.getInstance().getVehicles()){
                 if(v instanceof Car){
                     v.move();
                 }
@@ -28,7 +28,7 @@ public class CarAi extends BaseAi{
 
     @Override
     public void generateMoveVectors() {
-        for(Vehicle v : vehicleList.getVehicles()){
+        for(Vehicle v : VehicleList.getInstance().getVehicles()){
             if(v instanceof Car){
                 if(v.getMoveVector()==null){
                     int xStart = (int)v.getCoordinates().x();

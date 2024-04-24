@@ -3,8 +3,10 @@ package ru.matthew8913.simulation.model.vehicles;
 import ru.matthew8913.simulation.model.Habitat;
 import ru.matthew8913.simulation.model.Point;
 import javafx.scene.image.Image;
+import ru.matthew8913.simulation.model.VehicleList;
 
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.SplittableRandom;
 
 public class CarFactory {
@@ -89,6 +91,16 @@ public class CarFactory {
             }
         }else{
             return null;
+        }
+    }
+    public void setImages(){
+        for(Vehicle v: VehicleList.getInstance().getVehicles()){
+            if(v instanceof Car){
+                v.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(carImagePath))));
+
+            }else{
+                v.setImage(new Image(Objects.requireNonNull(getClass().getResourceAsStream(truckImagePath))));
+            }
         }
     }
 }

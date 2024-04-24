@@ -7,14 +7,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public abstract class BaseAi implements ThreadController{
-    protected final VehicleList vehicleList;
     protected ScheduledExecutorService executorService;
     protected boolean isRunning;
     protected  boolean isPaused;
     protected final Object lock = new Object();
 
     public BaseAi() {
-        vehicleList = VehicleList.getInstance();
         this.isRunning = false;
         this.isPaused = false;
     }

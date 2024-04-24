@@ -91,6 +91,12 @@
                   <Button fx:id="truckAiStopButton" mnemonicParsing="false" onAction="#handleStopTruckAiButton" prefWidth="80" text="Stop" />
                </children>
             </HBox>
+            <HBox prefHeight="0.0" prefWidth="160.0">
+               <children>
+                  <Button fx:id="saveButton" mnemonicParsing="false" onAction="#serialize" prefWidth="80" text="Save" />
+                  <Button fx:id="loadButton" mnemonicParsing="false" onAction="#deserialize" prefWidth="80" text="Load" />
+               </children>
+            </HBox>
 
             </children>
         </VBox>

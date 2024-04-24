@@ -3,10 +3,12 @@ package ru.matthew8913.simulation.model.vehicles;
 import ru.matthew8913.simulation.model.Point;
 import javafx.scene.image.Image;
 
+import java.io.Serializable;
+
 /**
  * Абстрактный класс транспортного средства.
  */
-public abstract class Vehicle implements IBehaviour {
+public abstract class Vehicle implements IBehaviour, Serializable {
     protected int id;
     protected Point endPoint;
     protected Point moveVector;
@@ -15,7 +17,7 @@ public abstract class Vehicle implements IBehaviour {
     /**
      * Изображение транспортного средства.
      */
-    protected Image image;
+    protected transient Image image;
     /**
      * Переменная координаты.
      */

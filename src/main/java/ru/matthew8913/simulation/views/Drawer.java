@@ -16,11 +16,10 @@ import java.util.List;
 public class Drawer {
     /**
      * Метод, отрисовывающий среду.
-     * @param habitat Среда, требующая отрисовки.
      * @param habitatPane Панель, на которой нужно рисовать.
      */
-    public static void drawHabitat(Habitat habitat, Pane habitatPane) {
-        List<Vehicle> vehList = habitat.getVehicleList().getVehicles();
+    public static void drawHabitat(Pane habitatPane) {
+        List<Vehicle> vehList = VehicleList.getInstance().getVehicles();
         // Добавляем ImageView для каждой машины в списке
         synchronized (vehList){
             for (Vehicle veh : vehList) {
@@ -46,4 +45,5 @@ public class Drawer {
             }
         }
     }
+
 }

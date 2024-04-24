@@ -5,51 +5,49 @@ import ru.matthew8913.simulation.model.vehicles.CarFactory;
 import ru.matthew8913.simulation.model.vehicles.Truck;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 
+import java.io.*;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Класс среды.
  */
-public class Habitat implements ThreadController{
+public class Habitat implements ThreadController, Serializable {
     /**
      * Статистика по среде.
      */
-    private Statistics statistics;
+    private transient Statistics statistics;
     /**
      * Флаг активности среды.
      */
-    private boolean isRunning;
+    private transient boolean isRunning;
     /**
      * Флаг для статистики.
      */
-    private boolean statsIsAvailable;
+    private transient boolean statsIsAvailable;
 
     /**
      * Секундомер для симуляции.
      */
-    private SimulationStopWatch simulationStopWatch;
+    private transient SimulationStopWatch simulationStopWatch;
     /**
      * Фабрика автомобилей.
      */
-    private final CarFactory factory;
-    /**
-     * Список автомобилей.
-     */
-    private final VehicleList vehicleList;
+    private transient final CarFactory factory;
+
     /**
      * Множество идентификаторов.
      */
-    private final TreeSet<Integer> identifiers;
+    private TreeSet<Integer> identifiers;
     /**
      * Мапа времен рождения по id.
      */
-    private final HashMap<Integer,Integer> birthTimes;
-    private ScheduledExecutorService executorService;
+    private HashMap<Integer,Integer> birthTimes;
+    private transient int timeAtStart;
+    private int timeForSerialize;
+    private transient ScheduledExecutorService executorService;
     /**
      * Ширина поля.
      */
@@ -60,12 +58,14 @@ public class Habitat implements ThreadController{
      */
     public static final int HEIGHT = 400;
 
-    private final Object lock = new Object();
+    public final transient Object lock = new Object();
+
+    public Object getLock() {
+        return lock;
+    }
+
     public SimulationStopWatch getSimulationStopWatch() {
         return simulationStopWatch;
-    }
-    public VehicleList getVehicleList() {
-        return vehicleList;
     }
     public Statistics getStatistics() {
         return statistics;
@@ -88,9 +88,8 @@ public class Habitat implements ThreadController{
      * Конструктор среды.
      */
     public Habitat() {
-        //Пока что используем потокобезопасный массив.
+        timeAtStart = 0;
         identifiers = new TreeSet<>();
-        vehicleList = VehicleList.getInstance();
         birthTimes = new HashMap<>();
         factory = new CarFactory();
         isRunning = false;
@@ -119,39 +118,36 @@ public class Habitat implements ThreadController{
 
     private Runnable createTask() {
         return () -> {
-            synchronized (lock) {
-                while (!isRunning) {
-                    try {
-                        lock.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
-                }
                 int sec = simulationStopWatch.getSeconds();
-                update(sec);
-            }
+                System.out.println(sec);
+                if(sec == 10){
+                    System.out.println();
+                }
+                printCollectionsSize();
+                update(sec+timeAtStart);
+                System.out.println("Машинки генерятся!");
         };
     }
 
+    public CarFactory getFactory() {
+        return factory;
+    }
+
     public void start() {
-        System.out.println("Запустился старт ёпт");
-        synchronized (lock) {
-            if (executorService != null && !executorService.isShutdown()){
-                executorService.shutdownNow();
+            if (executorService == null || executorService.isShutdown()){
+                statistics = new Statistics();
+                simulationStopWatch = new SimulationStopWatch();
+                simulationStopWatch.start();
+                executorService = Executors.newSingleThreadScheduledExecutor();
+                executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
+                isRunning = true;
+
             }
-            statistics = new Statistics();
-            simulationStopWatch = new SimulationStopWatch();
-            simulationStopWatch.start();
-            executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
-            isRunning = true;
-            lock.notifyAll();
-        }
+
+
     }
 
     public void resume() {
-        synchronized (lock) {
             isRunning = true;
             if(simulationStopWatch.isSuspended()){
                 simulationStopWatch.resume();
@@ -160,33 +156,28 @@ public class Habitat implements ThreadController{
                 executorService = Executors.newSingleThreadScheduledExecutor();
                 executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
             }
-            lock.notifyAll();
-        }
     }
 
     @Override
     public void pause() {
-        synchronized (lock) {
             if(isRunning){
                 isRunning = false;
                 simulationStopWatch.suspend();
                 statistics.setDuration(simulationStopWatch.getFormattedTime());
-                statistics.setVehicleList(List.copyOf(vehicleList.getVehicles()));
+                statistics.setVehicleList(List.copyOf(VehicleList.getInstance().getVehicles()));
                 if (executorService != null) {
-                    executorService.shutdownNow();
+                    executorService.shutdown();
                 }
             }
-        }
     }
 
     public void close(){
-        synchronized (lock) {
             if(executorService!=null){
                 executorService.shutdownNow();
                 executorService = null;
-                simulationStopWatch.reset();
+                simulationStopWatch.stop();
             }
-        }
+            clear();
     }
 
     /**
@@ -194,7 +185,7 @@ public class Habitat implements ThreadController{
      * @param sec Время, прошедшее с начала симуляции.
      */
     public void update(int sec) {
-        synchronized (vehicleList) {
+        synchronized (VehicleList.getInstance().getVehicles()) {
             Truck newTruck = factory.createTruck(sec);
             Car newCar = factory.createCar(sec);
             if (newTruck != null) {
@@ -212,14 +203,14 @@ public class Habitat implements ThreadController{
      * @param sec Время с начала симуляции.
      */
     public void deleteDeadCars(int sec) {
-        Iterator<Vehicle> iterator = vehicleList.getVehicles().iterator();
+        Iterator<Vehicle> iterator = VehicleList.getInstance().getVehicles().iterator();
         while (iterator.hasNext()) {
             Vehicle v = iterator.next();
 
             if (sec - birthTimes.get(v.getId()) >= v.getLifeTime()) {
                 birthTimes.remove(v.getId());
                 identifiers.remove(v.getId());
-                vehicleList.remove(v.getId());
+                VehicleList.remove(v.getId());
             }
         }
     }
@@ -235,7 +226,7 @@ public class Habitat implements ThreadController{
             id = new Random().nextInt(10000) + 1;
         } while (identifiers.contains(id));
         v.setId(id);
-        vehicleList.addVehicle(v);
+        VehicleList.addVehicle(v);
         identifiers.add(id);
         birthTimes.put(id,sec);
     }
@@ -246,12 +237,69 @@ public class Habitat implements ThreadController{
     public void clear() {
         simulationStopWatch.reset();
         executorService = null;
-        vehicleList.clear();
-        birthTimes.clear();
-        identifiers.clear();
-        statistics.setVehicleList(new ArrayList<>());
-        statistics.setDuration("0:0");
+        if(VehicleList.getInstance()!=null){
+            VehicleList.clear();
+        };
+        if(birthTimes!=null){
+            birthTimes.clear();
+        }
+        if(identifiers!=null){
+            identifiers.clear();
+
+        }
+        if(statistics!=null){
+            statistics.setVehicleList(new ArrayList<>());
+            statistics.setDuration("0:0");
+        }
+
+    }
+    public void initializeVehicleCollections(){
+        for(Vehicle v:VehicleList.getInstance().getVehicles()){
+            identifiers.add(v.getId());
+            birthTimes.put(v.getId(),0);
+        }
+    }
+    public void printCollectionsSize(){
+        if(identifiers!=null){
+            System.out.print("i: "+identifiers.size());
+        }
+        if(birthTimes!=null){
+            System.out.print("; b: "+birthTimes.size());
+        }
+        System.out.println("; v: " + VehicleList.getInstance().getVehicles().size());
+    }
+    public void setTime(){
+        timeForSerialize = simulationStopWatch.getSeconds();
+    }
+    public void serialize() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream("habitat.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            setTime();
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
     }
 
+    public void deserialize() {
+        try {
+            FileInputStream fileIn = new FileInputStream("habitat.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            Habitat habitat = (Habitat) in.readObject();
+            this.identifiers = habitat.identifiers;
+            this.birthTimes = habitat.birthTimes;
+            this.timeAtStart = timeForSerialize;
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+        } catch (ClassNotFoundException c) {
+            System.out.println("Habitat class not found");
+            c.printStackTrace();
+        }
+    }
 
 }

@@ -70,7 +70,6 @@ public class HabitatView implements ThreadController {
 
     private Runnable createDrawingTask() {
         return () -> {
-            synchronized (lock) {
                 if (isDrawingPaused) {
                     return;
                 }
@@ -81,47 +80,39 @@ public class HabitatView implements ThreadController {
                         timeLabel.setText(habitat.getSimulationStopWatch().getFormattedTime());
                     }
                 });
-            }
         };
     }
 
     @Override
     public void start() {
-        synchronized (lock) {
             isDrawingPaused = false;
             if (executorService == null || executorService.isShutdown()) {
                 executorService = Executors.newSingleThreadScheduledExecutor();
-                long frameDelay = 1000 / 60; // 60 FPS
+                long frameDelay = 1000 / 60;
                 executorService.scheduleAtFixedRate(createDrawingTask(), 0, frameDelay, TimeUnit.MILLISECONDS);
             }
-        }
     }
 
     @Override
     public void resume() {
-        synchronized (lock) {
-            isDrawingPaused = false;
             if (executorService != null) {
                 executorService.shutdownNow();
             }
             start();
-        }
     }
 
     @Override
     public void pause() {
-        synchronized (lock) {
-            isDrawingPaused = true;
-        }
+            if(executorService!=null){
+                executorService.shutdown();
+            }
     }
 
     public void close() {
-        synchronized (lock) {
             if (executorService != null) {
                 executorService.shutdownNow();
                 executorService = null;
             }
-        }
     }
 
 
@@ -130,7 +121,7 @@ public class HabitatView implements ThreadController {
      * Метод, отрисовывающий среду на панели.
      */
     public void drawHabitat() {
-        Drawer.drawHabitat(habitat, habitatPane);
+        Drawer.drawHabitat(habitatPane);
     }
 
     /**
