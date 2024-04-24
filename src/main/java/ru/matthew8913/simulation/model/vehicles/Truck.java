@@ -11,6 +11,11 @@ public class Truck extends Vehicle {
     }
     @Override
     public void move() {
-        return;
+        if (moveVector != null) {
+            if (!Point.near(endPoint,coordinates)) {
+                coordinates = new Point(coordinates.x()+ moveVector.x(), coordinates.y()+ moveVector.y());
+            }
+
+        }
     }
 }

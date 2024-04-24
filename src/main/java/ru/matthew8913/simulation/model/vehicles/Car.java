@@ -11,7 +11,14 @@ public class Car extends Vehicle {
     }
     @Override
     public void move() {
-        return;
+        if (moveVector != null) {
+            if (!Point.near(endPoint,coordinates)) {
+                coordinates = new Point(coordinates.x()+ moveVector.x(), coordinates.y()+ moveVector.y());
+            //    System.out.println("Координаты: x=" + coordinates.x() +", y="+coordinates.y());
+            //    System.out.println("Вектор: x=" + moveVector.x() +", y="+moveVector.y());
+            }
+
+        }
     }
 
 }

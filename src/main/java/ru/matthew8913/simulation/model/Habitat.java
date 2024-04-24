@@ -7,12 +7,15 @@ import ru.matthew8913.simulation.model.vehicles.Vehicle;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Класс среды.
  */
-public class Habitat {
+public class Habitat implements ThreadController{
     /**
      * Статистика по среде.
      */
@@ -25,10 +28,7 @@ public class Habitat {
      * Флаг для статистики.
      */
     private boolean statsIsAvailable;
-    /**
-     * Таймер для планирования периодических задач.
-     */
-    private Timer simulationTimer;
+
     /**
      * Секундомер для симуляции.
      */
@@ -40,16 +40,16 @@ public class Habitat {
     /**
      * Список автомобилей.
      */
-    private final List<Vehicle> vehicleList;
+    private final VehicleList vehicleList;
     /**
      * Множество идентификаторов.
      */
-    private final Set<Integer> identifiers;
+    private final TreeSet<Integer> identifiers;
     /**
      * Мапа времен рождения по id.
      */
-    private final Map<Integer,Integer> birthTimes;
-
+    private final HashMap<Integer,Integer> birthTimes;
+    private ScheduledExecutorService executorService;
     /**
      * Ширина поля.
      */
@@ -59,14 +59,13 @@ public class Habitat {
      * Высота поля.
      */
     public static final int HEIGHT = 400;
+
+    private final Object lock = new Object();
     public SimulationStopWatch getSimulationStopWatch() {
         return simulationStopWatch;
     }
-    public List<Vehicle> getVehicleList() {
+    public VehicleList getVehicleList() {
         return vehicleList;
-    }
-    public Timer getSimulationTimer() {
-        return simulationTimer;
     }
     public Statistics getStatistics() {
         return statistics;
@@ -91,7 +90,7 @@ public class Habitat {
     public Habitat() {
         //Пока что используем потокобезопасный массив.
         identifiers = new TreeSet<>();
-        vehicleList = Collections.synchronizedList(new ArrayList<>());
+        vehicleList = VehicleList.getInstance();
         birthTimes = new HashMap<>();
         factory = new CarFactory();
         isRunning = false;
@@ -118,53 +117,75 @@ public class Habitat {
         factory.setLifeTimeTruck(lifeTimeTruck);
     }
 
-    /**
-     * Метод запуска симуляции.
-     */
-    public void startSimulation() {
-        statistics = new Statistics();
-        isRunning = true;
-        simulationTimer = new Timer();
-        simulationStopWatch = new SimulationStopWatch();
-        simulationStopWatch.start();
-        simulationTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (isRunning) {
-                    int sec = simulationStopWatch.getSeconds();
-                    update(sec);
+    private Runnable createTask() {
+        return () -> {
+            synchronized (lock) {
+                while (!isRunning) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
                 }
+                int sec = simulationStopWatch.getSeconds();
+                update(sec);
             }
-        }, 0, 1000);
+        };
     }
 
-    /**
-     * Метод приостановки симуляции.
-     */
-    public void pauseSimulation() {
-        if(isRunning){
-            isRunning = false;
-            simulationStopWatch.suspend();
-            statistics.setDuration(simulationStopWatch.getFormattedTime());
-            statistics.setVehicleList(List.copyOf(vehicleList));
+    public void start() {
+        System.out.println("Запустился старт ёпт");
+        synchronized (lock) {
+            if (executorService != null && !executorService.isShutdown()){
+                executorService.shutdownNow();
+            }
+            statistics = new Statistics();
+            simulationStopWatch = new SimulationStopWatch();
+            simulationStopWatch.start();
+            executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
+            isRunning = true;
+            lock.notifyAll();
         }
     }
 
-    /**
-     * Метод продолжения симуляции.
-     */
-    public void resumeSimulation() {
-        isRunning = true;
-        simulationStopWatch.resume();
+    public void resume() {
+        synchronized (lock) {
+            isRunning = true;
+            if(simulationStopWatch.isSuspended()){
+                simulationStopWatch.resume();
+            }
+            if (executorService == null || executorService.isShutdown()) {
+                executorService = Executors.newSingleThreadScheduledExecutor();
+                executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
+            }
+            lock.notifyAll();
+        }
     }
 
-    /**
-     * Метод использующийся при закрытие среды.
-     */
+    @Override
+    public void pause() {
+        synchronized (lock) {
+            if(isRunning){
+                isRunning = false;
+                simulationStopWatch.suspend();
+                statistics.setDuration(simulationStopWatch.getFormattedTime());
+                statistics.setVehicleList(List.copyOf(vehicleList.getVehicles()));
+                if (executorService != null) {
+                    executorService.shutdownNow();
+                }
+            }
+        }
+    }
+
     public void close(){
-        if(simulationTimer!=null){
-            simulationTimer.cancel();
-            simulationStopWatch.reset();
+        synchronized (lock) {
+            if(executorService!=null){
+                executorService.shutdownNow();
+                executorService = null;
+                simulationStopWatch.reset();
+            }
         }
     }
 
@@ -173,15 +194,17 @@ public class Habitat {
      * @param sec Время, прошедшее с начала симуляции.
      */
     public void update(int sec) {
-        Truck newTruck = factory.createTruck(sec);
-        Car newCar = factory.createCar(sec);
-        if (newTruck != null) {
-            addVehiclesToHabitat(newTruck,sec);
+        synchronized (vehicleList) {
+            Truck newTruck = factory.createTruck(sec);
+            Car newCar = factory.createCar(sec);
+            if (newTruck != null) {
+                addVehiclesToHabitat(newTruck,sec);
+            }
+            if (newCar != null) {
+                addVehiclesToHabitat(newCar,sec);
+            }
+            deleteDeadCars(sec);
         }
-        if (newCar != null) {
-            addVehiclesToHabitat(newCar,sec);
-        }
-        deleteDeadCars(sec);
     }
 
     /**
@@ -189,13 +212,14 @@ public class Habitat {
      * @param sec Время с начала симуляции.
      */
     public void deleteDeadCars(int sec) {
-        Iterator<Vehicle> iterator = vehicleList.iterator();
+        Iterator<Vehicle> iterator = vehicleList.getVehicles().iterator();
         while (iterator.hasNext()) {
             Vehicle v = iterator.next();
+
             if (sec - birthTimes.get(v.getId()) >= v.getLifeTime()) {
-                iterator.remove();
                 birthTimes.remove(v.getId());
                 identifiers.remove(v.getId());
+                vehicleList.remove(v.getId());
             }
         }
     }
@@ -211,7 +235,8 @@ public class Habitat {
             id = new Random().nextInt(10000) + 1;
         } while (identifiers.contains(id));
         v.setId(id);
-        vehicleList.add(v);
+        vehicleList.addVehicle(v);
+        identifiers.add(id);
         birthTimes.put(id,sec);
     }
 
@@ -220,8 +245,7 @@ public class Habitat {
      */
     public void clear() {
         simulationStopWatch.reset();
-        simulationTimer.cancel();
-        simulationTimer=null; 
+        executorService = null;
         vehicleList.clear();
         birthTimes.clear();
         identifiers.clear();

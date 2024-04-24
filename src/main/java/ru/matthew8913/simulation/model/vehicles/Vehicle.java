@@ -8,7 +8,8 @@ import javafx.scene.image.Image;
  */
 public abstract class Vehicle implements IBehaviour {
     protected int id;
-
+    protected Point endPoint;
+    protected Point moveVector;
     protected int lifeTime;
 
     /**
@@ -22,6 +23,26 @@ public abstract class Vehicle implements IBehaviour {
     protected Vehicle(Point coordinates, int lifeTime) {
         this.coordinates = coordinates;
         this.lifeTime=lifeTime;
+    }
+
+    public Point getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(Point endPoint) {
+        this.endPoint = endPoint;
+    }
+
+    public void setCoordinates(Point coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public Point getMoveVector() {
+        return moveVector;
+    }
+
+    public void setMoveVector(Point moveVector) {
+        this.moveVector = moveVector;
     }
 
     public Point getCoordinates() {

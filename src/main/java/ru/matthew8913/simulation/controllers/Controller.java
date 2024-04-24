@@ -3,7 +3,10 @@ package ru.matthew8913.simulation.controllers;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.*;
+import ru.matthew8913.simulation.model.CarAi;
 import ru.matthew8913.simulation.model.Habitat;
+import ru.matthew8913.simulation.model.TruckAi;
+import ru.matthew8913.simulation.model.VehicleList;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 import ru.matthew8913.simulation.views.HabitatView;
 import javafx.application.Platform;
@@ -15,11 +18,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Controller{
+    public CarAi getCarAi() {
+        return carAi;
+    }
+
+    public TruckAi getTruckAi() {
+        return truckAi;
+    }
+
+    @FXML
+    public Button carAiStartButton;
+    @FXML
+    public Button carAiStopButton;
+    @FXML
+    public Button truckAiStartButton;
+    @FXML
+    public Button truckAiStopButton;
     private Habitat habitat;
     private HabitatView habitatView;
-
+    private CarAi carAi;
+    private TruckAi truckAi;
 
     @FXML
     private Label timeLabel;
@@ -68,6 +91,8 @@ public class Controller{
     @FXML
     public void initialize(){
         habitat = new Habitat();
+        carAi = new CarAi();
+        truckAi = new TruckAi();
         Platform.runLater(() -> habitatPane.requestFocus());
         initializeHabitatView();
         initializeMainButtons();
@@ -76,6 +101,8 @@ public class Controller{
         initializePControls();
         initializeIntervalControls();
         initializeLifetimeControls();
+        initializeAiButtons();
+
     }
 
     /**
@@ -279,10 +306,10 @@ public class Controller{
     @FXML
     private void handleCurrentObjectsButton(){
         if(habitat.isRunning()){
-            habitat.pauseSimulation();
-            habitatView.pauseDrawing();
+            habitat.pause();
+            habitatView.pause();
             StringBuilder sb = new StringBuilder();
-            List<Vehicle> vehicleList = habitat.getVehicleList();
+            List<Vehicle> vehicleList = VehicleList.getInstance().getVehicles();
             Set<Map.Entry<Integer,Integer>> entrySet = habitat.getBirthTimes().entrySet();
             for (Map.Entry<Integer,Integer> e : entrySet) {
                 Vehicle veh = Objects.requireNonNull(vehicleList.stream()
@@ -294,7 +321,7 @@ public class Controller{
                         .append(veh.getId())
                         .append("): ").append("born at ")
                         .append(e.getValue()).append(" sec ")
-                        .append("and lives for ").append(veh.getLifeTime())
+                        .append("and lives for ").append(e.getValue()+veh.getLifeTime())
                         .append("\n");
             }
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -304,8 +331,8 @@ public class Controller{
             alert.showAndWait()
                     .filter(response -> response == ButtonType.OK)
                     .ifPresent(response -> {
-                        habitatView.resumeDrawing();
-                        habitat.resumeSimulation();
+                        habitatView.resume();
+                        habitat.resume();
                     });
 
 
@@ -318,28 +345,25 @@ public class Controller{
      */
     void startSimulation(){
         if(!habitat.isRunning()){
-            if(habitat.getSimulationTimer()==null){
-                if(setFactoryParameters()){
-                    habitatView.clear();
-                    habitat.startSimulation();
-                    habitatView.startDrawingThread();
-                    habitatView.switchMainButtons();
-                }
-            }else{
-                habitat.resumeSimulation();
-                habitatView.resumeDrawing();
-                habitatView.switchMainButtons();
+            if(setFactoryParameters()){
+                habitatView.clear();
+                habitat.start();
+                habitatView.start();
+            }
+            habitat.resume();
+            habitatView.resume();
+            habitatView.switchMainButtons();
             }
         }
-    }
+
 
     /**
      * Метод остановки симуляции либо ее прерывания.
      */
     void stopSimulation(){
         if(habitat.isRunning()){
-            habitat.pauseSimulation();
-            habitatView.pauseDrawing();
+            habitat.pause();
+            habitatView.pause();
             habitatView.showStatistics();
         }
         if(!habitat.isStatsIsAvailable()){
@@ -386,4 +410,75 @@ public class Controller{
             throw new IllegalArgumentException("Значения времени жизни должны быть натуральными числами!");
         }
     }
+
+    @FXML
+    public void handleStartCarAiButton() {
+        if(!carAi.isRunning()){
+            if(carAi.getExecutorService()==null){
+                carAi.start();
+                switchCarAiButtons();
+            }else {
+                carAi.resume();
+                switchCarAiButtons();
+            }
+        }
+    }
+
+    @FXML
+    public void handleStopCarAiButton() {
+        if(carAi.isRunning()){
+            switchCarAiButtons();
+            carAi.pause();
+        }
+    }
+
+    @FXML
+    public void handleStartTruckAiButton() {
+        if(!truckAi.isRunning()){
+            if(truckAi.getExecutorService()==null){
+                truckAi.start();
+                switchTruckAiButtons();
+            }else {
+                truckAi.resume();
+                switchTruckAiButtons();
+             }
+        }
+    }
+
+    @FXML
+    public void handleStopTruckAiButton() {
+        if(truckAi.isRunning()){
+            switchTruckAiButtons();
+            truckAi.pause();
+        }
+    }
+    public void switchCarAiButtons(){
+        if(carAiStartButton.isDisabled()){
+            carAiStartButton.setDisable(false);
+            carAiStopButton.setDisable(true);
+        }else{
+            carAiStopButton.setDisable(false);
+            carAiStartButton.setDisable(true);
+        }
+    }
+    public void switchTruckAiButtons(){
+        if(truckAiStartButton.isDisabled()){
+            truckAiStartButton.setDisable(false);
+            truckAiStopButton.setDisable(true);
+        }else{
+            truckAiStopButton.setDisable(false);
+            truckAiStartButton.setDisable(true);
+        }
+    }
+
+            public void initializeAiButtons(){
+                truckAiStartButton.setDisable(false);
+                truckAiStopButton.setDisable(true);
+                carAiStartButton.setDisable(false);
+                carAiStopButton.setDisable(true);
+                truckAiStartButton.setFocusTraversable(false);
+                carAiStartButton.setFocusTraversable(false);
+                truckAiStopButton.setFocusTraversable(false);
+                carAiStopButton.setFocusTraversable(false);
+            }
 }

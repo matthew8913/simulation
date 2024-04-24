@@ -9,7 +9,6 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -32,7 +31,7 @@
                 </HBox>
                 <HBox prefHeight="16.0" prefWidth="160.0">
                <children>
-                  <CheckBox fx:id="showStatsCheckBox" onAction="#handleShowStatsAction" alignment="CENTER" mnemonicParsing="false" prefHeight="17.0" prefWidth="191.0" text="Show statistics" />
+                  <CheckBox fx:id="showStatsCheckBox" alignment="CENTER" mnemonicParsing="false" onAction="#handleShowStatsAction" prefHeight="17.0" prefWidth="191.0" text="Show statistics" />
                </children>
                 </HBox>
                 <HBox prefHeight="18.0" prefWidth="160.0">
@@ -78,6 +77,20 @@
                     </children>
                 </HBox>
             <Button fx:id="currentObjectsButton" mnemonicParsing="false" onAction="#handleCurrentObjectsButton" prefHeight="25.0" prefWidth="160.0" text="Текущие объекты" />
+            <Label alignment="CENTER" prefHeight="17.0" prefWidth="160.0" text="CarAi" />
+            <HBox prefHeight="0.0" prefWidth="160.0">
+               <children>
+                  <Button fx:id="carAiStartButton" mnemonicParsing="false" onAction="#handleStartCarAiButton" prefWidth="80" text="Start" />
+                  <Button fx:id="carAiStopButton" mnemonicParsing="false" onAction="#handleStopCarAiButton" prefWidth="80" text="Stop" />
+               </children>
+            </HBox>
+            <Label alignment="CENTER" prefHeight="17.0" prefWidth="160.0" text="TruckAi" />
+            <HBox prefHeight="0.0" prefWidth="160.0">
+               <children>
+                  <Button fx:id="truckAiStartButton" mnemonicParsing="false" onAction="#handleStartTruckAiButton" prefWidth="80" text="Start" />
+                  <Button fx:id="truckAiStopButton" mnemonicParsing="false" onAction="#handleStopTruckAiButton" prefWidth="80" text="Stop" />
+               </children>
+            </HBox>
 
             </children>
         </VBox>
