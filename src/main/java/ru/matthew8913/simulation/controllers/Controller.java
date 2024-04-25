@@ -14,10 +14,11 @@ import javafx.fxml.FXML;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -83,13 +84,20 @@ public class Controller {
     public CheckMenuItem tbShowStatsCheckBox;
     @FXML
     public CheckMenuItem tbShowTimeCheckBox;
-
+    private Properties properties;
 
     /**
      * Метод инициализации всех компонент
      */
     @FXML
     public void initialize() {
+        try{
+            properties = new Properties();
+            properties.load(Controller.class.getResourceAsStream("/ru/matthew8913/simulation/configs/simulation.properties"));
+
+        } catch (IOException e) {
+            System.out.println("Проблемы со считыванием файла конфигурации!");
+        }
         habitat = new Habitat();
         carAi = new CarAi();
         truckAi = new TruckAi();
@@ -134,51 +142,103 @@ public class Controller {
      * Инициализация компонент управления статистическим окном.
      */
     public void initializeStatsControls() {
+        boolean val = Boolean.parseBoolean(properties.getProperty("showStatistics","true"));
         showStatsCheckBox.setFocusTraversable(false);
-        showStatsCheckBox.setSelected(true);
-        tbShowStatsCheckBox.setSelected(true);
+        showStatsCheckBox.setSelected(val);
+        tbShowStatsCheckBox.setSelected(val);
     }
 
     /**
      * Инициализация компонент управления отображением времени.
      */
     public void initializeTimeControls() {
+        boolean val = Boolean.parseBoolean(properties.getProperty("showTime", "true"));
         ToggleGroup timeToggleGroup = new ToggleGroup();
         showTimeRadioButton.setToggleGroup(timeToggleGroup);
         hideTimeRadioButton.setToggleGroup(timeToggleGroup);
         showTimeRadioButton.setFocusTraversable(false);
         hideTimeRadioButton.setFocusTraversable(false);
-        hideTimeRadioButton.setSelected(true);
+        if(val){
+            showTimeRadioButton.setSelected(true);
+            tbShowTimeCheckBox.setSelected(true);
+
+            habitatView.switchTimeLabelVisible();
+        }else{
+            hideTimeRadioButton.setSelected(true);
+            tbShowTimeCheckBox.setSelected(false);
+        }
     }
 
     /**
      * Инициализация choice boxes для вероятности.
      */
-    public void initializePControls() {
-        for (int i = 0; i <= 100; i += 10) {
-            pCarChoiceBox.getItems().add(i + "%");
-            pTruckChoiceBox.getItems().add(i + "%");
+    public void initializePControls(){
+        for(int i = 0;i<=100;i+=10){
+            pCarChoiceBox.getItems().add(i+ "%");
+            pTruckChoiceBox.getItems().add(i+ "%");
         }
-        pCarChoiceBox.setValue("50%");
-        pTruckChoiceBox.setValue("50%");
+
+        String pCar = properties.getProperty("pCar","50");
+        String pTruck = properties.getProperty("pTruck","50");
+
+        try {
+            int valueCar = Integer.parseInt(pCar);
+            if (valueCar >= 0 && valueCar <= 100) {
+                pCar = Integer.toString(((valueCar + 5) / 10) * 10);
+            } else {
+                pCar = "50";
+            }
+        } catch (NumberFormatException e) {
+            pCar = "50";
+        }
+
+        try {
+            int valueTruck = Integer.parseInt(pTruck);
+            if (valueTruck >= 0 && valueTruck <= 100) {
+                pTruck = Integer.toString(((valueTruck + 5) / 10) * 10);
+            } else {
+                pTruck = "50";
+            }
+        } catch (NumberFormatException e) {
+            pTruck = "50";
+        }
+
+        pCarChoiceBox.setValue(pCar+"%");
+        pTruckChoiceBox.setValue(pTruck+"%");
     }
 
     /**
      * Инициализация филдов для установки интервалов рождения
      */
-    public void initializeIntervalControls() {
-        carIntervalTextField.setText("1");
-        truckIntervalTextField.setText("1");
+    public void initializeIntervalControls(){
+        String carInterval = getValidInterval(properties.getProperty("carInterval", "1"));
+        String truckInterval = getValidInterval(properties.getProperty("truckInterval", "1"));
+        carIntervalTextField.setText(carInterval);
+        truckIntervalTextField.setText(truckInterval);
         carIntervalTextField.setOnKeyPressed(this::handleKeyPressed);
         truckIntervalTextField.setOnKeyPressed(this::handleKeyPressed);
     }
 
+    private String getValidInterval(String interval) {
+        try {
+            int value = Integer.parseInt(interval);
+            if (value < 1) {
+                return "1";
+            } else {
+                return Integer.toString(value);
+            }
+        } catch (NumberFormatException e) {
+            return "1";
+        }
+    }
     /**
      * Инициализация компонент управления временем жизни объеков.
      */
-    public void initializeLifetimeControls() {
-        carLifeTimeTextField.setText("10");
-        truckLifeTimeTextField.setText("10");
+    public void initializeLifetimeControls(){
+        String carLifetime = getValidInterval(properties.getProperty("carLifetime", "1"));
+        String truckLifetime = getValidInterval(properties.getProperty("truckLifetime", "1"));
+        carLifeTimeTextField.setText(carLifetime);
+        truckLifeTimeTextField.setText(truckLifetime);
         carLifeTimeTextField.setOnKeyPressed(this::handleKeyPressed);
         truckLifeTimeTextField.setOnKeyPressed(this::handleKeyPressed);
     }

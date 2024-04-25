@@ -294,11 +294,8 @@ public class Habitat implements ThreadController, Serializable {
             this.timeAtStart = timeForSerialize;
             in.close();
             fileIn.close();
-        } catch (IOException i) {
-            i.printStackTrace();
-        } catch (ClassNotFoundException c) {
-            System.out.println("Habitat class not found");
-            c.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Habitat save not found!");
         }
     }
 

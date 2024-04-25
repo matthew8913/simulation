@@ -59,12 +59,9 @@ public class VehicleList {
                 instance.vehicles.addAll((ArrayList<Vehicle>) in.readObject());
                 in.close();
                 fileIn.close();
-            } catch (IOException i) {
-                i.printStackTrace();
-            } catch (ClassNotFoundException c) {
-                System.out.println("Vehicle class not found");
-                c.printStackTrace();
+            } catch (IOException | ClassNotFoundException i) {
+                System.out.println("Vehicle save not found");
             }
-        }
+    }
 
 }
