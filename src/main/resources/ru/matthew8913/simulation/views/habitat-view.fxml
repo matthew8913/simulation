@@ -97,6 +97,7 @@
                   <Button fx:id="loadButton" mnemonicParsing="false" onAction="#deserialize" prefWidth="80" text="Load" />
                </children>
             </HBox>
+            <Button fx:id="consoleButton" mnemonicParsing="false" onAction="#handleConsoleButton" prefHeight="25.0" prefWidth="174.0" text="Console" />
 
             </children>
         </VBox>

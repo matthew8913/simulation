@@ -2,7 +2,12 @@ package ru.matthew8913.simulation.controllers;
 
 import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import ru.matthew8913.simulation.Console;
 import ru.matthew8913.simulation.model.CarAi;
 import ru.matthew8913.simulation.model.Habitat;
 import ru.matthew8913.simulation.model.TruckAi;
@@ -24,6 +29,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Controller {
+
+    public Button consoleButton;
+
     public CarAi getCarAi() {
         return carAi;
     }
@@ -86,6 +94,7 @@ public class Controller {
     public CheckMenuItem tbShowTimeCheckBox;
     private Properties properties;
 
+    private Console console;
     /**
      * Метод инициализации всех компонент
      */
@@ -568,6 +577,40 @@ public class Controller {
             stopButton.setDisable(false);
             tbStartButton.setDisable(true);
             tbEndButton.setDisable(false);
+        }
+    }
+    public void openConsole(){
+        console = new Console(carAi, truckAi);
+        console.setController(this);
+        console.start();
+    }
+
+
+    @FXML
+    public void handleConsoleButton() {
+        if(console==null){
+            openConsole();
+        }else{
+            console.close();
+            console = null;
+        }
+    }
+    public void switchCarAiButton(){
+        if(carAiStartButton.isDisabled()){
+            carAiStartButton.setDisable(false);
+            carAiStopButton.setDisable(true);
+        }else{
+            carAiStartButton.setDisable(true);
+            carAiStopButton.setDisable(false);
+        }
+    }
+    public void switchTruckAiButton(){
+        if(truckAiStartButton.isDisabled()){
+            truckAiStartButton.setDisable(false);
+            truckAiStopButton.setDisable(true);
+        }else{
+            truckAiStartButton.setDisable(true);
+            truckAiStopButton.setDisable(false);
         }
     }
 }
