@@ -1,4 +1,4 @@
-package ru.matthew8913.simulation.model;
+package ru.matthew8913.simulation.model.helpers;
 
 import org.apache.commons.lang3.time.StopWatch;
 

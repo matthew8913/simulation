@@ -1,4 +1,4 @@
-package ru.matthew8913.simulation.model;
+package ru.matthew8913.simulation.model.helpers;
 
 import ru.matthew8913.simulation.model.vehicles.Car;
 import ru.matthew8913.simulation.model.vehicles.Truck;
@@ -24,7 +24,7 @@ public class Statistics {
     /**
      * Конструктор.
      */
-    Statistics(){
+    public Statistics(){
         duration = "";
     }
 

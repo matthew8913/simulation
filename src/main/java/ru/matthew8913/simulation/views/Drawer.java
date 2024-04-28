@@ -2,6 +2,7 @@ package ru.matthew8913.simulation.views;
 
 import javafx.scene.Node;
 import ru.matthew8913.simulation.model.Habitat;
+import ru.matthew8913.simulation.model.VehicleList;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -15,18 +16,20 @@ import java.util.List;
 public class Drawer {
     /**
      * Метод, отрисовывающий среду.
-     * @param habitat Среда, требующая отрисовки.
      * @param habitatPane Панель, на которой нужно рисовать.
      */
-    public static void drawHabitat(Habitat habitat, Pane habitatPane) {
+    public static void drawHabitat(Pane habitatPane) {
+        List<Vehicle> vehList = VehicleList.getInstance().getVehicles();
         // Добавляем ImageView для каждой машины в списке
-        for (Vehicle veh : habitat.getVehicleList()) {
-            ImageView imageView = new ImageView(veh.getImage());
-            // Устанавливаем позицию ImageView на основе координат машины
-            imageView.setX(veh.getCoordinates().x());
-            imageView.setY(veh.getCoordinates().y());
-            // Добавляем ImageView в корневой узел сцены
-            habitatPane.getChildren().add(imageView);
+        synchronized (vehList){
+            for (Vehicle veh : vehList) {
+                ImageView imageView = new ImageView(veh.getImage());
+                // Устанавливаем позицию ImageView на основе координат машины
+                imageView.setX(veh.getCoordinates().x());
+                imageView.setY(veh.getCoordinates().y());
+                // Добавляем ImageView в корневой узел сцены
+                habitatPane.getChildren().add(imageView);
+            }
         }
     }
 
@@ -42,4 +45,5 @@ public class Drawer {
             }
         }
     }
+
 }

@@ -1,25 +1,28 @@
 package ru.matthew8913.simulation.views;
 
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import ru.matthew8913.simulation.model.Habitat;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
+import ru.matthew8913.simulation.model.helpers.ThreadController;
 
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Класс представления среды, реализует нетривиальную логику графического интерфейса.
  */
-public class HabitatView {
+public class HabitatView implements ThreadController {
+
     private MenuItem tbMenuStartButton;
     private MenuItem tbMenuStopButton;
     private Button startButton;
     private Button stopButton;
+    private final Object lock = new Object();
     /**
      * Объект среды.
      */
@@ -53,74 +56,69 @@ public class HabitatView {
      * Pane для отрисовки среды.
      */
     private Pane habitatPane;
-    /**
-     * Поток, занимающийся отрисовкой.
-     */
-    private Thread drawingThread;
+
     /**
      * Лейбл со временем.
      */
     private Label timeLabel;
 
     private boolean isDrawingPaused;
-    private Timer drawingTimer;
+    private ScheduledExecutorService executorService;
 
-    /**
-     * Метод запуска потока отрисовки.
-     */
-    public void startDrawingThread() {
-        isDrawingPaused = false;
-        if (drawingThread == null || !drawingThread.isAlive()) {
-            // Создаем новый поток только если он не существует или завершился
-            drawingThread = new Thread(() -> {
-                drawingTimer = new Timer();
-                int fps = 30;
-                long frameDelay = 1000 / fps;
-
-                drawingTimer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (!isDrawingPaused) {
-                            Platform.runLater(() -> {
-                                clearHabitatPane();
-                                drawHabitat();
-                                if(timeLabel.isVisible()){
-                                    timeLabel.setText(habitat.getSimulationStopWatch().getFormattedTime());
-                                }
-                            });
-                        }
+    private Runnable createDrawingTask() {
+        return () -> {
+                if (isDrawingPaused) {
+                    return;
+                }
+                Platform.runLater(() -> {
+                    clearHabitatPane();
+                    drawHabitat();
+                    if(timeLabel.isVisible()){
+                        timeLabel.setText(habitat.getSimulationStopWatch().getFormattedTime());
                     }
-                }, 0, frameDelay);
-            });
-            drawingThread.start();
-        }
+                });
+        };
     }
 
-    /**
-     * Метод остановки потока отрисовки.
-     */
+    @Override
+    public void start() {
+            isDrawingPaused = false;
+            if (executorService == null || executorService.isShutdown()) {
+                executorService = Executors.newSingleThreadScheduledExecutor();
+                long frameDelay = 1000 / 60;
+                executorService.scheduleAtFixedRate(createDrawingTask(), 0, frameDelay, TimeUnit.MILLISECONDS);
+            }
+    }
+
+    @Override
+    public void resume() {
+            if (executorService != null) {
+                executorService.shutdownNow();
+            }
+            start();
+    }
+
+    @Override
+    public void pause() {
+            if(executorService!=null){
+                executorService.shutdown();
+            }
+    }
+
     public void close() {
-        if (drawingThread != null) {
-            drawingThread.interrupt();
-            drawingTimer.cancel();
-        }
-    }
-    public void pauseDrawing() {
-        isDrawingPaused=true;
+            if (executorService != null) {
+                executorService.shutdownNow();
+                executorService = null;
+            }
     }
 
-    /**
-     * Метод продолжения отрисовки.
-     */
-    public void resumeDrawing() {
-        isDrawingPaused=false;
-    }
+
 
     /**
      * Метод, отрисовывающий среду на панели.
      */
     public void drawHabitat() {
-        Drawer.drawHabitat(habitat, habitatPane);
+        Drawer.drawHabitat(habitatPane);
     }
 
     /**
@@ -155,16 +153,14 @@ public class HabitatView {
             if (result.isPresent()) {
                 if (result.get() == ButtonType.OK) {
                     timeLabel.setText("");
-                    this.pauseDrawing();
+                    this.pause();
                     habitat.clear();
                     clearHabitatPane();
                     switchMainButtons();
                     System.out.println("OK button pressed");
                 } else if (result.get() == ButtonType.CANCEL) {
-
-
-                    habitat.resumeSimulation();
-                    this.resumeDrawing();
+                    habitat.resume();
+                    this.resume();
                 }
             }
         }

@@ -1,20 +1,23 @@
 package ru.matthew8913.simulation.model.vehicles;
 
-import ru.matthew8913.simulation.model.Point;
+import ru.matthew8913.simulation.model.helpers.Point;
 import javafx.scene.image.Image;
+
+import java.io.Serializable;
 
 /**
  * Абстрактный класс транспортного средства.
  */
-public abstract class Vehicle implements IBehaviour {
+public abstract class Vehicle implements IBehaviour, Serializable {
     protected int id;
-
+    protected Point endPoint;
+    protected Point moveVector;
     protected int lifeTime;
 
     /**
      * Изображение транспортного средства.
      */
-    protected Image image;
+    protected transient Image image;
     /**
      * Переменная координаты.
      */
@@ -22,6 +25,26 @@ public abstract class Vehicle implements IBehaviour {
     protected Vehicle(Point coordinates, int lifeTime) {
         this.coordinates = coordinates;
         this.lifeTime=lifeTime;
+    }
+
+    public Point getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(Point endPoint) {
+        this.endPoint = endPoint;
+    }
+
+    public void setCoordinates(Point coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public Point getMoveVector() {
+        return moveVector;
+    }
+
+    public void setMoveVector(Point moveVector) {
+        this.moveVector = moveVector;
     }
 
     public Point getCoordinates() {

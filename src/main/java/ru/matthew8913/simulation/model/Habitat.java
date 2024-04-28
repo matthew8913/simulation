@@ -1,55 +1,56 @@
 package ru.matthew8913.simulation.model;
 
+import ru.matthew8913.simulation.model.helpers.SimulationStopWatch;
+import ru.matthew8913.simulation.model.helpers.Statistics;
+import ru.matthew8913.simulation.model.helpers.ThreadController;
 import ru.matthew8913.simulation.model.vehicles.Car;
 import ru.matthew8913.simulation.model.vehicles.CarFactory;
 import ru.matthew8913.simulation.model.vehicles.Truck;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 
+import java.io.*;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Класс среды.
  */
-public class Habitat {
+public class Habitat implements ThreadController, Serializable {
     /**
      * Статистика по среде.
      */
-    private Statistics statistics;
+    private transient Statistics statistics;
     /**
      * Флаг активности среды.
      */
-    private boolean isRunning;
+    private transient boolean isRunning;
     /**
      * Флаг для статистики.
      */
-    private boolean statsIsAvailable;
-    /**
-     * Таймер для планирования периодических задач.
-     */
-    private Timer simulationTimer;
+    private transient boolean statsIsAvailable;
+
     /**
      * Секундомер для симуляции.
      */
-    private SimulationStopWatch simulationStopWatch;
+    private transient SimulationStopWatch simulationStopWatch;
     /**
      * Фабрика автомобилей.
      */
-    private final CarFactory factory;
-    /**
-     * Список автомобилей.
-     */
-    private final List<Vehicle> vehicleList;
+    private transient final CarFactory factory;
+
     /**
      * Множество идентификаторов.
      */
-    private final Set<Integer> identifiers;
+    private TreeSet<Integer> identifiers;
     /**
      * Мапа времен рождения по id.
      */
-    private final Map<Integer,Integer> birthTimes;
-
+    private HashMap<Integer,Integer> birthTimes;
+    private transient int timeAtStart;
+    private int timeForSerialize;
+    private transient ScheduledExecutorService executorService;
     /**
      * Ширина поля.
      */
@@ -59,14 +60,15 @@ public class Habitat {
      * Высота поля.
      */
     public static final int HEIGHT = 400;
+
+    public final transient Object lock = new Object();
+
+    public Object getLock() {
+        return lock;
+    }
+
     public SimulationStopWatch getSimulationStopWatch() {
         return simulationStopWatch;
-    }
-    public List<Vehicle> getVehicleList() {
-        return vehicleList;
-    }
-    public Timer getSimulationTimer() {
-        return simulationTimer;
     }
     public Statistics getStatistics() {
         return statistics;
@@ -89,9 +91,8 @@ public class Habitat {
      * Конструктор среды.
      */
     public Habitat() {
-        //Пока что используем потокобезопасный массив.
+        timeAtStart = 0;
         identifiers = new TreeSet<>();
-        vehicleList = Collections.synchronizedList(new ArrayList<>());
         birthTimes = new HashMap<>();
         factory = new CarFactory();
         isRunning = false;
@@ -118,54 +119,68 @@ public class Habitat {
         factory.setLifeTimeTruck(lifeTimeTruck);
     }
 
-    /**
-     * Метод запуска симуляции.
-     */
-    public void startSimulation() {
-        statistics = new Statistics();
-        isRunning = true;
-        simulationTimer = new Timer();
-        simulationStopWatch = new SimulationStopWatch();
-        simulationStopWatch.start();
-        simulationTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (isRunning) {
-                    int sec = simulationStopWatch.getSeconds();
-                    update(sec);
+    private Runnable createTask() {
+        return () -> {
+                int sec = simulationStopWatch.getSeconds();
+                System.out.println(sec);
+                if(sec == 10){
+                    System.out.println();
+                }
+                printCollectionsSize();
+                update(sec+timeAtStart);
+                System.out.println("Машинки генерятся!");
+        };
+    }
+
+    public CarFactory getFactory() {
+        return factory;
+    }
+
+    public void start() {
+            if (executorService == null || executorService.isShutdown()){
+                statistics = new Statistics();
+                simulationStopWatch = new SimulationStopWatch();
+                simulationStopWatch.start();
+                executorService = Executors.newSingleThreadScheduledExecutor();
+                executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
+                isRunning = true;
+
+            }
+
+
+    }
+
+    public void resume() {
+            isRunning = true;
+            if(simulationStopWatch.isSuspended()){
+                simulationStopWatch.resume();
+            }
+            if (executorService == null || executorService.isShutdown()) {
+                executorService = Executors.newSingleThreadScheduledExecutor();
+                executorService.scheduleAtFixedRate(createTask(), 0, 1, TimeUnit.SECONDS);
+            }
+    }
+
+    @Override
+    public void pause() {
+            if(isRunning){
+                isRunning = false;
+                simulationStopWatch.suspend();
+                statistics.setDuration(simulationStopWatch.getFormattedTime());
+                statistics.setVehicleList(List.copyOf(VehicleList.getInstance().getVehicles()));
+                if (executorService != null) {
+                    executorService.shutdown();
                 }
             }
-        }, 0, 1000);
     }
 
-    /**
-     * Метод приостановки симуляции.
-     */
-    public void pauseSimulation() {
-        if(isRunning){
-            isRunning = false;
-            simulationStopWatch.suspend();
-            statistics.setDuration(simulationStopWatch.getFormattedTime());
-            statistics.setVehicleList(List.copyOf(vehicleList));
-        }
-    }
-
-    /**
-     * Метод продолжения симуляции.
-     */
-    public void resumeSimulation() {
-        isRunning = true;
-        simulationStopWatch.resume();
-    }
-
-    /**
-     * Метод использующийся при закрытие среды.
-     */
     public void close(){
-        if(simulationTimer!=null){
-            simulationTimer.cancel();
-            simulationStopWatch.reset();
-        }
+            if(executorService!=null){
+                executorService.shutdownNow();
+                executorService = null;
+                simulationStopWatch.stop();
+            }
+            clear();
     }
 
     /**
@@ -173,15 +188,17 @@ public class Habitat {
      * @param sec Время, прошедшее с начала симуляции.
      */
     public void update(int sec) {
-        Truck newTruck = factory.createTruck(sec);
-        Car newCar = factory.createCar(sec);
-        if (newTruck != null) {
-            addVehiclesToHabitat(newTruck,sec);
+        synchronized (VehicleList.getInstance().getVehicles()) {
+            Truck newTruck = factory.createTruck(sec);
+            Car newCar = factory.createCar(sec);
+            if (newTruck != null) {
+                addVehiclesToHabitat(newTruck,sec);
+            }
+            if (newCar != null) {
+                addVehiclesToHabitat(newCar,sec);
+            }
+            deleteDeadCars(sec);
         }
-        if (newCar != null) {
-            addVehiclesToHabitat(newCar,sec);
-        }
-        deleteDeadCars(sec);
     }
 
     /**
@@ -189,13 +206,14 @@ public class Habitat {
      * @param sec Время с начала симуляции.
      */
     public void deleteDeadCars(int sec) {
-        Iterator<Vehicle> iterator = vehicleList.iterator();
+        Iterator<Vehicle> iterator = VehicleList.getInstance().getVehicles().iterator();
         while (iterator.hasNext()) {
             Vehicle v = iterator.next();
+
             if (sec - birthTimes.get(v.getId()) >= v.getLifeTime()) {
-                iterator.remove();
                 birthTimes.remove(v.getId());
                 identifiers.remove(v.getId());
+                VehicleList.remove(v.getId());
             }
         }
     }
@@ -211,7 +229,8 @@ public class Habitat {
             id = new Random().nextInt(10000) + 1;
         } while (identifiers.contains(id));
         v.setId(id);
-        vehicleList.add(v);
+        VehicleList.addVehicle(v);
+        identifiers.add(id);
         birthTimes.put(id,sec);
     }
 
@@ -220,14 +239,67 @@ public class Habitat {
      */
     public void clear() {
         simulationStopWatch.reset();
-        simulationTimer.cancel();
-        simulationTimer=null; 
-        vehicleList.clear();
-        birthTimes.clear();
-        identifiers.clear();
-        statistics.setVehicleList(new ArrayList<>());
-        statistics.setDuration("0:0");
+        executorService = null;
+        if(VehicleList.getInstance()!=null){
+            VehicleList.clear();
+        };
+        if(birthTimes!=null){
+            birthTimes.clear();
+        }
+        if(identifiers!=null){
+            identifiers.clear();
+
+        }
+        if(statistics!=null){
+            statistics.setVehicleList(new ArrayList<>());
+            statistics.setDuration("0:0");
+        }
+
+    }
+    public void initializeVehicleCollections(){
+        for(Vehicle v:VehicleList.getInstance().getVehicles()){
+            identifiers.add(v.getId());
+            birthTimes.put(v.getId(),0);
+        }
+    }
+    public void printCollectionsSize(){
+        if(identifiers!=null){
+            System.out.print("i: "+identifiers.size());
+        }
+        if(birthTimes!=null){
+            System.out.print("; b: "+birthTimes.size());
+        }
+        System.out.println("; v: " + VehicleList.getInstance().getVehicles().size());
+    }
+    public void setTime(){
+        timeForSerialize = simulationStopWatch.getSeconds();
+    }
+    public void serialize() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream("habitat.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            setTime();
+            out.writeObject(this);
+            out.close();
+            fileOut.close();
+        } catch (IOException i) {
+            i.printStackTrace();
+        }
     }
 
+    public void deserialize() {
+        try {
+            FileInputStream fileIn = new FileInputStream("habitat.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            Habitat habitat = (Habitat) in.readObject();
+            this.identifiers = habitat.identifiers;
+            this.birthTimes = habitat.birthTimes;
+            this.timeAtStart = timeForSerialize;
+            in.close();
+            fileIn.close();
+        } catch (Exception e) {
+            System.out.println("Habitat save not found!");
+        }
+    }
 
 }
