@@ -1,14 +1,11 @@
-package ru.matthew8913.simulation.model;
+package ru.matthew8913.simulation.model.ai;
 
 import ru.matthew8913.simulation.model.Habitat;
-import ru.matthew8913.simulation.model.Point;
+import ru.matthew8913.simulation.model.helpers.Point;
+import ru.matthew8913.simulation.model.VehicleList;
 import ru.matthew8913.simulation.model.vehicles.Car;
-import ru.matthew8913.simulation.model.vehicles.Truck;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
-import org.apache.commons.math3.random.RandomDataGenerator;
+
 public class CarAi extends BaseAi{
 
     public CarAi() {

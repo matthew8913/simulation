@@ -6,18 +6,13 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import ru.matthew8913.simulation.controllers.Controller;
-import ru.matthew8913.simulation.model.BaseAi;
-import ru.matthew8913.simulation.model.CarAi;
+import ru.matthew8913.simulation.model.ai.CarAi;
 import ru.matthew8913.simulation.model.Habitat;
-import ru.matthew8913.simulation.model.TruckAi;
+import ru.matthew8913.simulation.model.ai.TruckAi;
 import ru.matthew8913.simulation.views.HabitatView;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class SimulationApp extends Application {
     private HabitatView habitatView;

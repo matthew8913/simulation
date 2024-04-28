@@ -1,17 +1,14 @@
 package ru.matthew8913.simulation.views;
 
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import ru.matthew8913.simulation.model.Habitat;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
-import ru.matthew8913.simulation.model.ThreadController;
+import ru.matthew8913.simulation.model.helpers.ThreadController;
 
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;

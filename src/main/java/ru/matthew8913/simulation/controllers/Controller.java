@@ -2,15 +2,10 @@ package ru.matthew8913.simulation.controllers;
 
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
-import ru.matthew8913.simulation.Console;
-import ru.matthew8913.simulation.model.CarAi;
+import ru.matthew8913.simulation.model.ai.CarAi;
 import ru.matthew8913.simulation.model.Habitat;
-import ru.matthew8913.simulation.model.TruckAi;
+import ru.matthew8913.simulation.model.ai.TruckAi;
 import ru.matthew8913.simulation.model.VehicleList;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 import ru.matthew8913.simulation.views.HabitatView;
@@ -19,14 +14,8 @@ import javafx.fxml.FXML;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Controller {
 

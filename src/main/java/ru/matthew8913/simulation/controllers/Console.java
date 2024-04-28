@@ -1,4 +1,4 @@
-package ru.matthew8913.simulation;
+package ru.matthew8913.simulation.controllers;
 
 
 import javafx.scene.Scene;
@@ -6,9 +6,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import ru.matthew8913.simulation.controllers.Controller;
-import ru.matthew8913.simulation.model.CarAi;
-import ru.matthew8913.simulation.model.ThreadController;
-import ru.matthew8913.simulation.model.TruckAi;
+import ru.matthew8913.simulation.model.ai.CarAi;
+import ru.matthew8913.simulation.model.ai.TruckAi;
 
 public class Console{
     CarAi carAi;

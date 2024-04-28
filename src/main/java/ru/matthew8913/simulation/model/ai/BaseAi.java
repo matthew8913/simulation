@@ -1,12 +1,12 @@
-package ru.matthew8913.simulation.model;
+package ru.matthew8913.simulation.model.ai;
 
-import ru.matthew8913.simulation.model.vehicles.Vehicle;
+import ru.matthew8913.simulation.model.helpers.ThreadController;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class BaseAi implements ThreadController{
+public abstract class BaseAi implements ThreadController {
     protected ScheduledExecutorService executorService;
     protected boolean isRunning;
     protected  boolean isPaused;

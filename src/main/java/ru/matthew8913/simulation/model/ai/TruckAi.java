@@ -1,6 +1,9 @@
-package ru.matthew8913.simulation.model;
+package ru.matthew8913.simulation.model.ai;
 
 
+import ru.matthew8913.simulation.model.Habitat;
+import ru.matthew8913.simulation.model.helpers.Point;
+import ru.matthew8913.simulation.model.VehicleList;
 import ru.matthew8913.simulation.model.vehicles.Truck;
 import ru.matthew8913.simulation.model.vehicles.Vehicle;
 

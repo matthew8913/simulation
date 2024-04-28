@@ -1,6 +1,6 @@
 package ru.matthew8913.simulation.model.vehicles;
 
-import ru.matthew8913.simulation.model.Point;
+import ru.matthew8913.simulation.model.helpers.Point;
 import javafx.scene.image.Image;
 
 import java.io.Serializable;

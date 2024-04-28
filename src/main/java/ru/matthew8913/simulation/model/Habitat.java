@@ -1,5 +1,8 @@
 package ru.matthew8913.simulation.model;
 
+import ru.matthew8913.simulation.model.helpers.SimulationStopWatch;
+import ru.matthew8913.simulation.model.helpers.Statistics;
+import ru.matthew8913.simulation.model.helpers.ThreadController;
 import ru.matthew8913.simulation.model.vehicles.Car;
 import ru.matthew8913.simulation.model.vehicles.CarFactory;
 import ru.matthew8913.simulation.model.vehicles.Truck;
