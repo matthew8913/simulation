@@ -13,12 +13,14 @@ import ru.matthew8913.simulation.views.HabitatView;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Properties;
 
 public class SimulationApp extends Application {
     private HabitatView habitatView;
     private Habitat habitat;
     private CarAi carAi;
     private TruckAi truckAi;
+    private Controller controller;
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(SimulationApp.class.getResource("views/habitat-view.fxml"));
@@ -29,14 +31,16 @@ public class SimulationApp extends Application {
         stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
-        Controller controller = fxmlLoader.getController();
+        controller = fxmlLoader.getController();
         habitatView = controller.getHabitatView();
         habitat = controller.getHabitat();
         carAi = controller.getCarAi();
         truckAi = controller.getTruckAi();
+        controller.setStage(stage);
     }
     @Override
     public void stop(){
+        controller.close();
         habitat.close();
         habitatView.close();
         carAi.close();

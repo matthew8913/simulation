@@ -42,7 +42,7 @@ public class Console{
         textArea.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 String[] lines = textArea.getText().split("\n");
-                String command = lines[lines.length - 1].trim(); // Берем последнюю строку
+                String command = lines[lines.length - 1].trim(); 
                 switch (command) {
                     case "stop-car":
                         if(carAi.isRunning()){

@@ -35,32 +35,37 @@ public class VehicleList {
     public static void remove(int id){
         instance.vehicles.removeIf(vehicle -> vehicle.getId()==id);
     }
-    public static void serializeVehicles() {
-        synchronized (instance.vehicles){
-            try {
-                FileOutputStream fileOut = new FileOutputStream("vehicles.ser");
-                ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                out.writeObject(instance.vehicles);
-                out.close();
-                fileOut.close();
-            } catch (IOException i) {
-                i.printStackTrace();
+    public static void serializeVehicles(String path) {
+        if(instance!=null){
+            synchronized (instance.vehicles){
+                try {
+                    FileOutputStream fileOut = new FileOutputStream(path+"\\vehicles.ser");
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(instance.vehicles);
+                    out.close();
+                    fileOut.close();
+                } catch (IOException i) {
+                    i.printStackTrace();
+                }
             }
         }
 
     }
 
-    public static void deserializeVehicles() {
+    public static boolean deserializeVehicles(File vehicleFile) {
             getInstance();
             try {
-                FileInputStream fileIn = new FileInputStream("vehicles.ser");
+                FileInputStream fileIn = new FileInputStream(vehicleFile);
                 ObjectInputStream in = new ObjectInputStream(fileIn);
                 instance.vehicles.clear();
                 instance.vehicles.addAll((ArrayList<Vehicle>) in.readObject());
                 in.close();
                 fileIn.close();
+                return true;
             } catch (IOException | ClassNotFoundException i) {
                 System.out.println("Vehicle save not found");
+                return false;
+
             }
     }
 

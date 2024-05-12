@@ -274,9 +274,9 @@ public class Habitat implements ThreadController, Serializable {
     public void setTime(){
         timeForSerialize = simulationStopWatch.getSeconds();
     }
-    public void serialize() {
+    public void serialize(String path) {
         try {
-            FileOutputStream fileOut = new FileOutputStream("habitat.ser");
+            FileOutputStream fileOut = new FileOutputStream(path+"\\habitat.ser");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
             setTime();
             out.writeObject(this);
@@ -287,9 +287,9 @@ public class Habitat implements ThreadController, Serializable {
         }
     }
 
-    public void deserialize() {
+    public void deserialize(File habitatFile) {
         try {
-            FileInputStream fileIn = new FileInputStream("habitat.ser");
+            FileInputStream fileIn = new FileInputStream(habitatFile);
             ObjectInputStream in = new ObjectInputStream(fileIn);
             Habitat habitat = (Habitat) in.readObject();
             this.identifiers = habitat.identifiers;

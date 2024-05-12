@@ -2,7 +2,6 @@ module com.example.demo {
     requires javafx.controls;
     requires javafx.fxml;
     requires org.apache.commons.lang3;
-    requires commons.math3;
 
 
     opens ru.matthew8913.simulation to javafx.fxml;

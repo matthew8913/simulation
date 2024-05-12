@@ -3,6 +3,9 @@ package ru.matthew8913.simulation.controllers;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.scene.control.*;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import ru.matthew8913.simulation.model.ai.CarAi;
 import ru.matthew8913.simulation.model.Habitat;
 import ru.matthew8913.simulation.model.ai.TruckAi;
@@ -14,10 +17,60 @@ import javafx.fxml.FXML;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
 public class Controller {
+    Stage stage;
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    public Button saveButton;
+    public Button loadButton;
+
+    public void save() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Выберите папку для сохранения");
+        File selectedDirectory = directoryChooser.showDialog(stage);
+
+        if (selectedDirectory != null) {
+            // Выбрана папка, можно выполнять сериализацию
+            String selectedPath = selectedDirectory.getAbsolutePath();
+            serialize(selectedPath);
+        }
+    }
+
+    public void load() {
+        // Открываем диалоговое окно для выбора файла habitat
+        FileChooser habitatFileChooser = new FileChooser();
+        habitatFileChooser.setTitle("Выберите файл habitat");
+        File habitatFile = habitatFileChooser.showOpenDialog(stage);
+        // Открываем диалоговое окно для выбора файла vehicleList
+        FileChooser vehicleListFileChooser = new FileChooser();
+        vehicleListFileChooser.setTitle("Выберите файл vehicleList");
+        File vehicleListFile = vehicleListFileChooser.showOpenDialog(stage);
+        if (vehicleListFile!=null) {
+            try{
+                deserialize(habitatFile,vehicleListFile);
+                return;
+            }catch(Exception e){
+                System.out.println("Произошла ошибка десериализации");
+            }
+        }
+        habitat.close();
+    }
+
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
 
     public Button consoleButton;
 
@@ -427,10 +480,10 @@ public class Controller {
             habitat.pause();
             habitatView.pause();
             habitatView.showStatistics();
-        }
-        if (!habitat.isStatsIsAvailable()) {
-            habitatView.switchMainButtons();
-            habitat.clear();
+            if (!habitat.isStatsIsAvailable()) {
+                habitatView.switchMainButtons();
+                habitat.clear();
+            }
         }
 
     }
@@ -548,15 +601,15 @@ public class Controller {
         carAiStopButton.setFocusTraversable(false);
     }
 
-    public void serialize(){
-        VehicleList.serializeVehicles();
-        habitat.serialize();
+    public void serialize(String path){
+        VehicleList.serializeVehicles(path);
+        habitat.serialize(path);
     }
-    public void deserialize(){
+    public void deserialize(File habitatFile, File vehicleFile){
         habitatView.pause();
         habitat.close();
-        VehicleList.deserializeVehicles();
-        habitat.deserialize();
+        VehicleList.deserializeVehicles(vehicleFile);
+        habitat.deserialize(habitatFile);
         habitat.getFactory().setImages();
         setFactoryParameters();
         habitat.start();
@@ -600,6 +653,25 @@ public class Controller {
         }else{
             truckAiStartButton.setDisable(true);
             truckAiStopButton.setDisable(false);
+        }
+    }
+    public void close() {
+        properties.setProperty("showStatistics", String.valueOf(showStatsCheckBox.isSelected()));
+        properties.setProperty("showTime", String.valueOf(showTimeRadioButton.isSelected()));
+        properties.setProperty("pCar", pCarChoiceBox.getValue().substring(0, pCarChoiceBox.getValue().length() - 1));
+        properties.setProperty("pTruck", pTruckChoiceBox.getValue().substring(0, pCarChoiceBox.getValue().length() - 1));
+        properties.setProperty("carInterval", getValidInterval(carIntervalTextField.getText()));
+        properties.setProperty("truckInterval", getValidInterval(truckIntervalTextField.getText()));
+        properties.setProperty("carLifetime", getValidInterval(carLifeTimeTextField.getText()));
+        properties.setProperty("truckLifetime", getValidInterval(truckLifeTimeTextField.getText()));
+
+        try {
+            // Запись изменений в файл
+            FileOutputStream fileOut = new FileOutputStream("src/main/resources/ru/matthew8913/simulation/configs/simulation.properties");
+            properties.store(fileOut, "Updated properties");
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
